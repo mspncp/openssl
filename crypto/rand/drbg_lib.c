@@ -229,6 +229,44 @@ end:
 }
 
 /*
+ * Mix in the specified data without reseeding |drbg|.
+ * 
+ * Used by drbg_add() only.
+ *
+ * Similar to RAND_DRBG_reseed(), but there is no call to 
+ * get_entropy() and the reseed_counter is not reset
+ */
+int rand_drbg_add(RAND_DRBG *drbg,
+                     const unsigned char *adin, size_t adinlen)
+{
+    if (drbg->state == DRBG_ERROR) {
+        RANDerr(RAND_F_RAND_DRBG_RESEED, RAND_R_IN_ERROR_STATE);
+        return 0;
+    }
+    if (drbg->state == DRBG_UNINITIALISED) {
+        RANDerr(RAND_F_RAND_DRBG_RESEED, RAND_R_NOT_INSTANTIATED);
+        return 0;
+    }
+
+    if (adin == NULL)
+        adinlen = 0;
+    else if (adinlen > drbg->max_adinlen) {
+        RANDerr(RAND_F_RAND_DRBG_RESEED, RAND_R_ADDITIONAL_INPUT_TOO_LONG);
+        return 0;
+    }
+
+    drbg->state = DRBG_ERROR;
+    if (!ctr_reseed(drbg, NULL, 0, adin, adinlen))
+        goto end;
+    drbg->state = DRBG_READY;
+    
+end:
+    if (drbg->state == DRBG_READY)
+        return 1;
+    return 0;
+}
+
+/*
  * Generate |outlen| bytes into the buffer at |out|.  Reseed if we need
  * to or if |prediction_resistance| is set.  Additional input can be
  * sent in |adin| and |adinlen|.
@@ -412,25 +450,18 @@ err:
 
 static int drbg_add(const void *buf, int num, double randomness)
 {
-    unsigned char *in = (unsigned char *)buf;
-    unsigned char *out, *end;
+    int ret = 0;
+    RAND_DRBG *drbg = RAND_DRBG_get0_global();
 
-    CRYPTO_THREAD_write_lock(rand_bytes.lock);
-    out = &rand_bytes.buff[rand_bytes.curr];
-    end = &rand_bytes.buff[rand_bytes.size];
+    if (drbg == NULL)
+        return 0;
+    
+    CRYPTO_THREAD_write_lock(drbg->lock);
+    ret = rand_drbg_add(drbg, buf, num);
 
-    /* Copy whatever fits into the end of the buffer. */
-    for ( ; --num >= 0 && out < end; rand_bytes.curr++)
-        *out++ = *in++;
-
-    /* XOR any the leftover. */
-    while (num > 0) {
-        for (out = rand_bytes.buff; --num >= 0 && out < end; )
-            *out++ ^= *in++;
-    }
-
-    CRYPTO_THREAD_unlock(rand_bytes.lock);
-    return 1;
+err:
+    CRYPTO_THREAD_unlock(drbg->lock);
+    return ret;
 }
 
 static int drbg_seed(const void *buf, int num)
