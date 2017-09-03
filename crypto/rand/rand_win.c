@@ -39,7 +39,7 @@
 #  define INTEL_DEF_PROV L"Intel Hardware Cryptographic Service Provider"
 # endif
 
-int RAND_poll_ex(RAND_poll_cb rand_add, void *arg)
+int RAND_POOL_fill(RAND_POOL * pool)
 {
 # ifndef USE_BCRYPTGENRANDOM
     HCRYPTPROV hProvider;
@@ -48,10 +48,10 @@ int RAND_poll_ex(RAND_poll_cb rand_add, void *arg)
     BYTE buf[RANDOMNESS_NEEDED];
 
 # ifdef OPENSSL_RAND_SEED_RDTSC
-    rand_read_tsc(cb, arg);
+    rand_read_tsc(pool);
 # endif
 # ifdef OPENSSL_RAND_SEED_RDCPU
-    if (rand_read_cpu(cb, arg))
+    if (rand_read_cpu(pool))
         return 1;
 # endif
 

@@ -24,7 +24,7 @@ static CRYPTO_RWLOCK *rand_engine_lock;
 static CRYPTO_RWLOCK *rand_meth_lock;
 static const RAND_METHOD *default_RAND_meth;
 static CRYPTO_ONCE rand_init = CRYPTO_ONCE_STATIC_INIT;
-RAND_BYTES_BUFFER rand_bytes;
+
 int rand_fork_count;
 
 #ifdef OPENSSL_RAND_SEED_RDTSC
@@ -42,7 +42,7 @@ int rand_fork_count;
  * it's not sufficient to indicate whether or not the seeding was
  * done.
  */
-void rand_read_tsc(RAND_poll_cb rand_add, void *arg)
+void rand_read_tsc(RAND_POOL * pool)
 {
     unsigned char c;
     int i;
@@ -50,126 +50,119 @@ void rand_read_tsc(RAND_poll_cb rand_add, void *arg)
     if ((OPENSSL_ia32cap_P[0] & (1 << 4)) != 0) {
         for (i = 0; i < TSC_READ_COUNT; i++) {
             c = (unsigned char)(OPENSSL_rdtsc() & 0xFF);
-            rand_add(arg, &c, 1, 0.5);
+            RAND_POOL_add(pool, &c, 1, 0.5);
         }
     }
 }
 #endif
 
 #ifdef OPENSSL_RAND_SEED_RDCPU
-size_t OPENSSL_ia32_rdseed_bytes(char *buf, size_t len);
-size_t OPENSSL_ia32_rdrand_bytes(char *buf, size_t len);
+size_t OPENSSL_ia32_rdseed_bytes(unsigned char *buf, size_t len);
+size_t OPENSSL_ia32_rdrand_bytes(unsigned char *buf, size_t len);
 
 extern unsigned int OPENSSL_ia32cap_P[];
 
-int rand_read_cpu(RAND_poll_cb rand_add, void *arg)
+int rand_read_cpu(RAND_POOL *pool)
 {
-    char buff[RANDOMNESS_NEEDED];
+    int bytes_needed;
+    unsigned char *buffer;
 
-    /* If RDSEED is available, use that. */
-    if ((OPENSSL_ia32cap_P[2] & (1 << 18)) != 0) {
-        if (OPENSSL_ia32_rdseed_bytes(buff, sizeof(buff)) == sizeof(buff)) {
-            rand_add(arg, buff, (int)sizeof(buff), sizeof(buff));
-            return 1;
+    bytes_needed = RAND_POOL_bytes_needed(pool, 8 /*entropy_per_byte*/);
+    if (bytes_needed > 0) {
+        buffer = RAND_POOL_add_begin(pool, bytes_needed);
+
+        if (buffer != NULL) {
+
+            /* If RDSEED is available, use that. */
+            if ((OPENSSL_ia32cap_P[2] & (1 << 18)) != 0) {
+                if (OPENSSL_ia32_rdseed_bytes(buffer, bytes_needed) == bytes_needed)
+                    return RAND_POOL_add_end(pool, bytes_needed, bytes_needed);
+            }
+
+            /* Second choice is RDRAND. */
+            if ((OPENSSL_ia32cap_P[1] & (1 << (62 - 32))) != 0) {
+                if (OPENSSL_ia32_rdrand_bytes(buffer, bytes_needed) == bytes_needed)
+                    return RAND_POOL_add_end(pool, bytes_needed, bytes_needed);
+            }
         }
     }
 
-    /* Second choice is RDRAND. */
-    if ((OPENSSL_ia32cap_P[1] & (1 << (62 - 32))) != 0) {
-        if (OPENSSL_ia32_rdrand_bytes(buff, sizeof(buff)) == sizeof(buff)) {
-            rand_add(arg, buff, (int)sizeof(buff), sizeof(buff));
-            return 1;
-        }
-    }
-
-    return 0;
+    return RAND_POOL_entropy_available(pool);
 }
 #endif
 
 
 /*
  * DRBG has two sets of callbacks; we only discuss the "entropy" one
- * here.  When the DRBG needs additional randomness bits (called entropy
- * in the NIST document), it calls the get_entropy callback which fills in
- * a pointer and returns the number of bytes. When the DRBG is finished with
+ * here.  When the DRBG needs additional entropy, it calls the 
+ * get_entropy callback which allocates a buffer, stores its address 
+ * in *pount and returns the number of bytes. 
+ * When the DRBG is finished with
  * the buffer, it calls the cleanup_entropy callback, with the value of
  * the buffer that the get_entropy callback filled in.
- *
- * Get entropy from the system, via RAND_poll if needed.  The |entropy|
- * is the bits of randomness required, and is expected to fit into a buffer
- * of |min_len|..|max__len| size.  We assume we're getting high-quality
- * randomness from the system, and that |min_len| bytes will do.
  */
-size_t drbg_entropy_from_system(RAND_DRBG *drbg,
-                                unsigned char **pout,
-                                int entropy, size_t min_len, size_t max_len)
+
+
+/*
+ * Implements the get_entropy() callback
+ *
+ * If the DRBG has a parent, then the required amount of entropy input
+ * is fetched using the parent's RAND_DRBG_generate().
+ *
+ * Otherwise, the entropy is polled from the system entropy sources.
+ * Previously, this used to be done by calling RAND_poll().
+ * Nowadays, both RAND_poll() and drbg_get_entropy() are based on 
+ * the RAND_POOL API, i.e., the entropy is aqcuired by RAND_POOL_fill().
+ */
+size_t drbg_get_entropy(RAND_DRBG *drbg,
+                        unsigned char **pout,
+                        int entropy, size_t min_len, size_t max_len)
 {
-    int i;
-    unsigned char *randomness;
+    int bytes = 0;
+    size_t ret = 0;
+    int entropy_available = 0;
 
-    if (min_len > (size_t)drbg->size) {
-        /* Should not happen.  See comment near RANDOMNESS_NEEDED. */
-        min_len = drbg->size;
+    RAND_POOL* pool = RAND_POOL_new(entropy, min_len, max_len);
+    
+    if (drbg->parent) {
+        int bytes_needed = RAND_POOL_bytes_needed(pool, 8);
+        unsigned char *buf = RAND_POOL_add_begin(pool, bytes_needed);
+
+        if (buf != NULL) {
+            /* Get entropy from parent, include our state as additional input. */
+            bytes = RAND_DRBG_generate(drbg->parent,
+                                    buf, bytes_needed,
+                                    0,
+                                    (unsigned char *)drbg, sizeof(*drbg));
+
+            if (bytes)
+                bytes = bytes_needed;
+            
+            entropy_available = RAND_POOL_add_end(pool, bytes, bytes);
+        }
+
+    } else {
+        /* Get entropy by polling system entropy sources. */
+        entropy_available = RAND_POOL_fill(pool);
     }
 
-    randomness = drbg->secure ? OPENSSL_secure_malloc(drbg->size)
-                                    : OPENSSL_malloc(drbg->size);
-
-    /* If we don't have enough, try to get more. */
-    CRYPTO_THREAD_write_lock(rand_bytes.lock);
-    for (i = RAND_POLL_RETRIES; rand_bytes.curr < min_len && --i >= 0; ) {
-        CRYPTO_THREAD_unlock(rand_bytes.lock);
-        RAND_poll();
-        CRYPTO_THREAD_write_lock(rand_bytes.lock);
+    if (entropy_available > 0) {
+        *pout = RAND_POOL_detach(pool);
+        ret   = RAND_POOL_length(pool);
     }
-
-    /* Get desired amount, but no more than we have. */
-    if (min_len > rand_bytes.curr)
-        min_len = rand_bytes.curr;
-    if (min_len != 0) {
-        memcpy(randomness, rand_bytes.buff, min_len);
-        /* Update amount left and shift it down. */
-        rand_bytes.curr -= min_len;
-        if (rand_bytes.curr != 0)
-            memmove(rand_bytes.buff, &rand_bytes.buff[min_len], rand_bytes.curr);
-    }
-    CRYPTO_THREAD_unlock(rand_bytes.lock);
-    *pout = randomness;
-    return min_len;
+    
+    RAND_POOL_free(pool);
+    return ret;
 }
 
-size_t drbg_entropy_from_parent(RAND_DRBG *drbg,
-                                unsigned char **pout,
-                                int entropy, size_t min_len, size_t max_len)
+
+/*
+ * Implements the cleanup_entropy() callback
+ *
+ */
+void drbg_cleanup_entropy(RAND_DRBG *drbg, unsigned char *out, size_t outlen)
 {
-    int st;
-    unsigned char *randomness;
-
-    if (min_len > (size_t)drbg->size) {
-        /* Should not happen.  See comment near RANDOMNESS_NEEDED. */
-        min_len = drbg->size;
-    }
-
-    randomness = drbg->secure ? OPENSSL_secure_malloc(drbg->size)
-                                    : OPENSSL_malloc(drbg->size);
-
-    /* Get random from parent, include our state as additional input. */
-    st = RAND_DRBG_generate(drbg->parent, randomness, min_len, 0,
-                            (unsigned char *)drbg, sizeof(*drbg));
-    if (st == 0) {
-        drbg_release_entropy(drbg, randomness, min_len);
-        return 0;
-    }
-    *pout = randomness;
-    return min_len;
-}
-
-void drbg_release_entropy(RAND_DRBG *drbg, unsigned char *out, size_t outlen)
-{
-    if (drbg->secure)
-        OPENSSL_secure_clear_free(out, outlen);
-    else
-        OPENSSL_clear_free(out, outlen);
+    OPENSSL_secure_clear_free(out, outlen);
 }
 
 void rand_fork()
@@ -188,15 +181,6 @@ DEFINE_RUN_ONCE_STATIC(do_rand_init)
     rand_meth_lock = CRYPTO_THREAD_glock_new("rand_meth");
     ret &= rand_meth_lock != NULL;
 
-    rand_bytes.lock = CRYPTO_THREAD_glock_new("rand_bytes");
-    ret &= rand_bytes.lock != NULL;
-    rand_bytes.curr = 0;
-    rand_bytes.size = MAX_RANDOMNESS_HELD;
-    rand_bytes.secure = CRYPTO_secure_malloc_initialized();
-    rand_bytes.buff = rand_bytes.secure
-        ? OPENSSL_secure_malloc(rand_bytes.size)
-        : OPENSSL_malloc(rand_bytes.size);
-    ret &= rand_bytes.buff != NULL;
     return ret;
 }
 
@@ -211,26 +195,351 @@ void rand_cleanup_int(void)
     CRYPTO_THREAD_lock_free(rand_engine_lock);
 #endif
     CRYPTO_THREAD_lock_free(rand_meth_lock);
-    CRYPTO_THREAD_lock_free(rand_bytes.lock);
-    if (rand_bytes.secure)
-        OPENSSL_secure_clear_free(rand_bytes.buff, rand_bytes.size);
-    else
-        OPENSSL_clear_free(rand_bytes.buff, rand_bytes.size);
 }
 
 /*
- * RAND_poll_ex() gets a function pointer to call when it has random bytes.
- * RAND_poll() sets the function pointer to be a wrapper that calls RAND_add().
+ * RAND_poll() reseeds the default RNG using random input
+ *
+ * The random input is obtained from polling various entropy
+ * sources which depend on the operating system and are 
+ * configurable via the --with-rand-seed configure option.
  */
-static void call_rand_add(void* arg, const void *buf, int num, double r)
-{
-    RAND_add(buf, num, r);
-}
-
 int RAND_poll(void)
 {
-    return RAND_poll_ex(call_rand_add, NULL);
+    int ret = 0;
+    
+    RAND_POOL *pool = NULL;
+
+    const RAND_METHOD *meth = RAND_get_rand_method();
+
+    if (meth == RAND_OpenSSL()) {
+        /* fill random pool and seed the default DRBG */
+        RAND_DRBG *drbg = RAND_DRBG_get0_global();
+        
+        pool = RAND_POOL_new(drbg->strength, 
+                             drbg->min_entropylen,
+                             drbg->max_entropylen);
+
+        if (RAND_POOL_fill(pool) == 0)
+            goto err;
+            
+        if (RAND_DRBG_reseed(drbg,
+                RAND_POOL_buffer(pool),
+                RAND_POOL_length(pool)) == 0)
+            goto err;
+
+    } else {
+        /* fill random pool and seed the current legacy RNG */
+        pool = RAND_POOL_new(RAND_DRBG_STRENGTH,
+                             RAND_DRBG_STRENGTH/8,
+                             RAND_DRBG_STRENGTH/8);
+            
+        if (RAND_POOL_fill(pool) == 0)
+            goto err;
+
+        if (meth->add == NULL ||
+            meth->add(
+                RAND_POOL_buffer(pool),
+                RAND_POOL_length(pool),
+                (RAND_POOL_entropy(pool)/8.0)) == 0)
+            goto err;
+    }
+
+    ret = 1;
+
+err:
+    RAND_POOL_free(pool);
+    return ret;
+
 }
+
+/*
+ * The 'random pool' acts as a dumb container for collecting random
+ * input from various entropy sources. The pool has no knowledge about
+ * whether its randomness is fed into a legacy RAND_METHOD via RAND_add() 
+ * or into a new style RAND_DRBG. It is the callers duty to 1) initialize the 
+ * random pool, 2) pass it to the the polling callbacks, 3) seed the RNG,
+ * and 4) cleanup the random pool again.
+ * 
+ * The random pool contains no locking mechanism because it's scope and 
+ * lifetime is intended to be restricted to a single stack frame.
+ */
+typedef struct rand_pool_st {
+    unsigned char *buffer;
+
+    size_t len;
+    size_t min_len;
+    size_t max_len;
+
+    int entropy;
+    int requested_entropy;
+
+    size_t reserved_len;
+} RAND_POOL;
+
+/*
+ * Allocate memory and initialize a new random pool
+ */
+
+RAND_POOL *RAND_POOL_new(int entropy, size_t min_len, size_t max_len)
+{
+    RAND_POOL *pool = OPENSSL_zalloc(sizeof(*pool));
+
+    if (pool == NULL) {
+        RANDerr(RAND_F_RAND_POOL_NEW, ERR_R_MALLOC_FAILURE);
+        goto err;
+    }
+    
+    pool->len = 0;
+    pool->min_len = min_len;
+    pool->max_len = max_len;
+
+    pool->buffer = OPENSSL_secure_zalloc(pool->max_len);
+    
+    if (pool->buffer == NULL) {
+        RANDerr(RAND_F_RAND_POOL_NEW, ERR_R_MALLOC_FAILURE);
+        goto err;
+    }
+
+    pool->entropy = 0;
+    pool->requested_entropy = entropy;
+
+    pool->reserved_len = 0;
+    
+    return pool;
+
+err:
+    OPENSSL_free(pool);
+    return NULL;
+}
+
+/*
+ * Uninstantiate |pool| and free all memory. If |pout| != NULL,
+ * return the pool data to the caller 
+ */
+void RAND_POOL_free(RAND_POOL *pool)
+{
+    if (pool == NULL)
+        return;
+    
+    OPENSSL_secure_clear_free(pool->buffer, pool->max_len);
+    OPENSSL_free(pool);
+}
+
+/*
+ * Return the |pool|'s buffer to the caller (readonly).
+ */
+const unsigned char *RAND_POOL_buffer(RAND_POOL *pool)
+{
+    return pool->buffer;
+}
+
+/*
+ * Return the |pool|'s entropy to the caller.
+ */
+int RAND_POOL_entropy(RAND_POOL *pool)
+{
+    return pool->entropy;
+}
+
+/*
+ * Return the |pool|'s buffer length to the caller.
+ */
+size_t RAND_POOL_length(RAND_POOL *pool)
+{
+    return pool->len;
+}
+
+/*
+ * Detach the |pool| buffer and return it to the caller.
+ * It's the responsibility of the caller to free the buffer
+ * using OPENSSL_secure_free().
+ */
+unsigned char *RAND_POOL_detach(RAND_POOL *pool)
+{
+    unsigned char * ret = pool->buffer;
+    pool->buffer = NULL;
+    return ret;
+}
+
+
+/*
+ * If every byte of the input contains |entropy_per_bytes| bits of entropy,
+ * how many bytes does one need to obtain at least |bits| bits of entropy?
+ */
+#define ENTROPY_TO_BYTES(bits, entropy_per_bytes) \
+    (((bits) + (entropy_per_bytes - 1))/(entropy_per_bytes))
+
+
+/*
+ * Checks whether the |pool|'s entropy is available to the caller.
+ * This is the case when entropy count and buffer length are high enough.
+ * Returns
+ *
+ *  |entropy|  if the entropy count and buffer size is large enough
+ *      0      otherwise
+ *     -1      on error 
+ */
+int RAND_POOL_entropy_available(RAND_POOL *pool)
+{
+    if (pool == NULL)
+        return -1;
+
+    if (pool->entropy < pool->requested_entropy)
+        return 0;
+
+    if (pool->len < pool->min_len)
+        return 0;
+
+    return pool->entropy;
+}
+
+/*
+ * Returns the (remaining) amount of entropy needed to fill
+ * the random pool.
+ *
+ * If an error occurs, -1 is returned.
+ */
+
+int RAND_POOL_entropy_needed(RAND_POOL *pool)
+{
+    if (pool == NULL)
+        return -1;
+
+    if (pool->entropy < pool->requested_entropy)
+        return pool->requested_entropy - pool->entropy;
+    
+    return 0;
+}
+
+/*
+ * Returns the remaining number of bytes available
+ *
+ * If an error occurs, -1 is returned.
+ */
+
+int RAND_POOL_bytes_remaining(RAND_POOL *pool)
+{
+    if (pool == NULL)
+        return -1;
+    return pool->max_len - pool->len;
+}
+
+/*
+ * Returns the number of bytes needed to fill the pool, assuming
+ * the input has 'entropy_per_byte' entropy bits per byte.
+ *
+ * If an error occurs, -1 is returned.
+ */
+
+int RAND_POOL_bytes_needed(RAND_POOL *pool, int entropy_per_byte)
+{
+    int bytes_needed;
+    
+    int entropy_needed = RAND_POOL_entropy_needed(pool);
+        
+    if (entropy_needed < 0 || entropy_per_byte <= 0)
+        return -1;
+
+    bytes_needed = ENTROPY_TO_BYTES(entropy_needed, entropy_per_byte);
+
+    if (bytes_needed > pool->max_len - pool->len)
+        return -1; /* not enough space left */
+    else if (bytes_needed < pool->min_len - pool->len)
+        bytes_needed = pool->min_len - pool->len; /* to meet the min_len requirement */
+    
+    return bytes_needed;
+}
+
+/*
+ * Add the contents of the |buffer| to the random pool.
+ * Return available amount of entropy after this operation.
+ * (see RAND_POOL_entropy_available(pool))
+ */
+int RAND_POOL_add(RAND_POOL *pool, const void *buffer, int num, double randomness)
+{
+    size_t len  = (size_t)num;
+    int entropy = (int)(randomness * 8.0);
+
+    if (pool->len + len > pool->max_len) {
+        RANDerr(RAND_F_RAND_POOL_ADD, RAND_R_SIZE_OUT_OF_RANGE);
+        return -1;
+    }
+
+    if (len > 0) {
+        memcpy(pool->buffer + pool->len, buffer, len);
+        pool->len += len;
+        pool->entropy += entropy;
+    }
+
+    return RAND_POOL_entropy_available(pool);
+}
+
+/*
+ * Add the contents of the |buffer| to the random pool in-place.
+ * Return available amount of entropy after this operation.
+ * (see RAND_POOL_entropy_available(pool))
+ *
+ * RAND_POOL_add_begin() reserves the next |num| bytes for adding 
+ * randomness in-place and returns a pointer to the buffer. It
+ * is allowed to copy up to |num| bytes into the buffer.
+ *
+ * RAND_POOL_add_end() is called after updating the buffer. The 
+ * |num| argument specifies the number of bytes updated. It is 
+ * to allowed to update less bytes than originally reserved
+ *
+ *     unsigned char *buffer = RAND_POOL_add_begin(pool, num);
+ *     if (buf != NULL) {
+ *        n = getrandom(buffer, bytes, 0);
+ *        RAND_POOL_add_end(pool, n, n);
+ *     }
+ */
+unsigned char * RAND_POOL_add_begin(RAND_POOL *pool, int num)
+{
+    size_t len  = (size_t)num;
+
+    if (pool->reserved_len != 0) {
+        RANDerr(RAND_F_RAND_POOL_ADD_BEGIN, RAND_R_NESTED_GROUP);
+        return NULL;
+    }
+
+    if (pool->len + len > pool->max_len) {
+        RANDerr(RAND_F_RAND_POOL_ADD_BEGIN, RAND_R_SIZE_OUT_OF_RANGE);
+        return NULL;
+    }
+
+    pool->reserved_len = len;
+
+    return pool->buffer + pool->len;
+}
+
+int RAND_POOL_add_end(RAND_POOL *pool, int num, double randomness)
+{
+    size_t len  = (size_t)num;
+    int entropy = (int)(randomness * 8.0);
+
+    if (pool->reserved_len == 0) {
+        RANDerr(RAND_F_RAND_POOL_ADD_END, RAND_R_NO_GROUP);
+        return -1;
+    }
+
+    if (len > pool->reserved_len) {
+        RANDerr(RAND_F_RAND_POOL_ADD_END, RAND_R_SIZE_OUT_OF_RANGE);
+        return -1;
+    }
+
+    if (len > 0) {
+        pool->len += len;
+        pool->entropy += entropy;
+    }
+
+    pool->reserved_len = 0;
+
+    return RAND_POOL_entropy_available(pool);
+}
+
+
+    
 
 int RAND_set_rand_method(const RAND_METHOD *meth)
 {

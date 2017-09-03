@@ -13,6 +13,18 @@
 /* In CTR mode, use derivation function ctr_df */
 #define RAND_DRBG_FLAG_CTR_USE_DF            0x2
 
+
+/*
+ * Default security strength (in the sense of [NIST SP 800-90Ar1])
+ * of the default OpenSSL DRBG, and the corresponding NID.
+ * 
+ * Currently supported values: 128, 192, 256
+ * 
+ * TODO(DRBG): would be nice to have the strength configurable
+ */
+# define RAND_DRBG_STRENGTH             128
+# define RAND_DRBG_NID                  NID_aes_128_ctr
+
 /*
  * Object lifetime functions.
  */
@@ -64,4 +76,33 @@ int RAND_DRBG_set_callbacks(RAND_DRBG *dctx,
                             RAND_DRBG_get_nonce_fn get_nonce,
                             RAND_DRBG_cleanup_nonce_fn cleanup_nonce);
 
+
+
+
+/*
+ * RAND_POOL functions
+ */
+
+
+RAND_POOL *RAND_POOL_new(int entropy_requested, size_t min_len, size_t max_len);
+void RAND_POOL_free(RAND_POOL *pool);
+
+const unsigned char *RAND_POOL_buffer(RAND_POOL *pool);
+unsigned char *RAND_POOL_detach(RAND_POOL *pool);
+
+int RAND_POOL_entropy(RAND_POOL *pool);
+size_t RAND_POOL_length(RAND_POOL *pool);
+
+int RAND_POOL_entropy_available(RAND_POOL *pool);
+int RAND_POOL_entropy_needed(RAND_POOL *pool);
+int RAND_POOL_bytes_needed(RAND_POOL *pool, int entropy_per_byte);
+
+int RAND_POOL_add(RAND_POOL *pool, const void *buffer, int num, double randomness);
+
+unsigned char * RAND_POOL_add_begin(RAND_POOL *pool, int num);
+int RAND_POOL_add_end(RAND_POOL *pool, int num, double randomness);
+
+
+/* platform specific */
+int RAND_POOL_fill(RAND_POOL * pool);
 #endif

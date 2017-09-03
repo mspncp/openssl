@@ -76,15 +76,14 @@ RAND_DRBG *RAND_DRBG_new(int type, unsigned int flags, RAND_DRBG *parent)
         RANDerr(RAND_F_RAND_DRBG_NEW, ERR_R_MALLOC_FAILURE);
         goto err;
     }
-    drbg->size = RANDOMNESS_NEEDED;
     drbg->fork_count = rand_fork_count;
     drbg->parent = parent;
     if (RAND_DRBG_set(drbg, type, flags) < 0)
         goto err;
 
     if (parent != NULL) {
-        if (!RAND_DRBG_set_callbacks(drbg, drbg_entropy_from_parent,
-                                     drbg_release_entropy,
+        if (!RAND_DRBG_set_callbacks(drbg, drbg_get_entropy,
+                                     drbg_cleanup_entropy,
                                      NULL, NULL))
             goto err;
     }
@@ -240,30 +239,57 @@ int rand_drbg_add(RAND_DRBG *drbg,
                      const unsigned char *adin, size_t adinlen)
 {
     if (drbg->state == DRBG_ERROR) {
-        RANDerr(RAND_F_RAND_DRBG_RESEED, RAND_R_IN_ERROR_STATE);
+        RANDerr(RAND_F_RAND_DRBG_ADD, RAND_R_IN_ERROR_STATE);
         return 0;
     }
     if (drbg->state == DRBG_UNINITIALISED) {
-        RANDerr(RAND_F_RAND_DRBG_RESEED, RAND_R_NOT_INSTANTIATED);
+        RANDerr(RAND_F_RAND_DRBG_ADD, RAND_R_NOT_INSTANTIATED);
         return 0;
     }
 
     if (adin == NULL)
         adinlen = 0;
     else if (adinlen > drbg->max_adinlen) {
-        RANDerr(RAND_F_RAND_DRBG_RESEED, RAND_R_ADDITIONAL_INPUT_TOO_LONG);
+        RANDerr(RAND_F_RAND_DRBG_ADD, RAND_R_ADDITIONAL_INPUT_TOO_LONG);
         return 0;
     }
 
-    drbg->state = DRBG_ERROR;
-    if (!ctr_reseed(drbg, NULL, 0, adin, adinlen))
-        goto end;
-    drbg->state = DRBG_READY;
-    
-end:
-    if (drbg->state == DRBG_READY)
-        return 1;
-    return 0;
+    /* 
+     * TODO(DRBG): looking at the source code of ctr_update() it
+     * becomes obvious that |adin| needs to be passed as |in1| and 
+     * not  as |in2| parameter of ctr_update():
+     *
+     *       ctr_update(drbg, adin, adinlen, NULL, 0, NULL, 0);
+     *
+     * Otherwise the line
+     *
+     *            ctr_XOR(ctr, ctr->KX, drbg->seedlen);
+     *
+     * would not get executed. So we have three options
+     *
+     *  1) pass |adin| as |entropy| argument to ctr_reseed():
+     *
+     *        ctr_reseed(drbg, adin, adinlen, NULL, 0);
+     *
+     *  2) call ctr_generate() with |adin| to generate dummy output:
+     *
+     *        ctr_generate(drbg, dummy, sizeof(dummy), adin, adinlen)
+     *
+     *  3) make ctr_update() non-static and call it directly 
+     *
+     *        ctr_update(drbg, adin, adinlen, NULL, 0, NULL, 0);
+     *
+     * Variants 1) and 2) both invoke 3), but 2) is more heavyweigth
+     * Variant 3) would be the simplest solution, but the function
+     * is currently static. So I chose variant 1), even though
+     * using |adin| for |entropy| looks like a hack.
+     *
+     * Any comments? Suggestions?
+     */
+
+    ctr_reseed(drbg, adin, adinlen, NULL, 0);
+
+    return 1;
 }
 
 /*
@@ -323,21 +349,34 @@ int RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
 }
 
 /*
- * Set the callbacks for entropy and nonce.  We currently don't use
- * the nonce; that's mainly for the KATs
+ * Set the RAND_DRBG callbacks for obtaining entropy and nonce.
+ *
+ * get_entropy() 
+ * 
+ *   This is a request to allocate and fill a buffer of size |min_len| <= size <= |max_len| 
+ *   (in bytes) which contains at least |entropy| bits of entropy. The buffers address is
+ *   to be returned in |*pout| and the number of collected randomness bytes as return value.
+ * 
+ * cleanup_entropy()
+ *	
+ *	 A request to clear and free the buffer allocated by get_entropy().
+ *
+ * The callbacks get_nonce() and cleanup_nonce() operate similarly.
+ *
+ * Currently, the nonce is used only for the KATs
  */
 int RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
-                            RAND_DRBG_get_entropy_fn cb_get_entropy,
-                            RAND_DRBG_cleanup_entropy_fn cb_cleanup_entropy,
-                            RAND_DRBG_get_nonce_fn cb_get_nonce,
-                            RAND_DRBG_cleanup_nonce_fn cb_cleanup_nonce)
+                            RAND_DRBG_get_entropy_fn get_entropy,
+                            RAND_DRBG_cleanup_entropy_fn cleanup_entropy,
+                            RAND_DRBG_get_nonce_fn get_nonce,
+                            RAND_DRBG_cleanup_nonce_fn cleanup_nonce)
 {
     if (drbg->state != DRBG_UNINITIALISED)
         return 0;
-    drbg->get_entropy = cb_get_entropy;
-    drbg->cleanup_entropy = cb_cleanup_entropy;
-    drbg->get_nonce = cb_get_nonce;
-    drbg->cleanup_nonce = cb_cleanup_nonce;
+    drbg->get_entropy = get_entropy;
+    drbg->cleanup_entropy = cleanup_entropy;
+    drbg->get_nonce = get_nonce;
+    drbg->cleanup_nonce = cleanup_nonce;
     return 1;
 }
 
@@ -381,13 +420,10 @@ static int setup_drbg(RAND_DRBG *drbg, const char *name)
 
     drbg->lock = CRYPTO_THREAD_glock_new(name);
     ret &= drbg->lock != NULL;
-    drbg->size = RANDOMNESS_NEEDED;
-    drbg->secure = CRYPTO_secure_malloc_initialized();
-    /* If you change these parameters, see RANDOMNESS_NEEDED */
     ret &= RAND_DRBG_set(drbg,
-                         NID_aes_128_ctr, RAND_DRBG_FLAG_CTR_USE_DF) == 1;
-    ret &= RAND_DRBG_set_callbacks(drbg, drbg_entropy_from_system,
-                                   drbg_release_entropy, NULL, NULL) == 1;
+                         RAND_DRBG_NID, RAND_DRBG_FLAG_CTR_USE_DF) == 1;
+    ret &= RAND_DRBG_set_callbacks(drbg, drbg_get_entropy,
+                                   drbg_cleanup_entropy, NULL, NULL) == 1;
     ret &= RAND_DRBG_instantiate(drbg, NULL, 0) == 1;
     return ret;
 }
@@ -458,9 +494,8 @@ static int drbg_add(const void *buf, int num, double randomness)
     
     CRYPTO_THREAD_write_lock(drbg->lock);
     ret = rand_drbg_add(drbg, buf, num);
-
-err:
     CRYPTO_THREAD_unlock(drbg->lock);
+
     return ret;
 }
 

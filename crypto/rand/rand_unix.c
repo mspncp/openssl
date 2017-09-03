@@ -14,6 +14,10 @@
 #include "rand_lcl.h"
 #include <stdio.h>
 
+#ifdef OPENSSL_RAND_SEED_GETRANDOM
+# include <linux/random.h>
+#endif
+
 #if !(defined(OPENSSL_SYS_WINDOWS) || defined(OPENSSL_SYS_WIN32) || defined(OPENSSL_SYS_VMS) || defined(OPENSSL_SYS_VXWORKS) || defined(OPENSSL_SYS_UEFI))
 
 # if (defined(OPENSSL_SYS_VXWORKS) || defined(OPENSSL_SYS_UEFI)) && \
@@ -46,16 +50,16 @@
  * would be far more predictable.  This should only be used for legacy
  * platforms.
  *
- * As a precaution, we generate four times the required amount of seed
- * data.
+ * As a precaution, we assume only 2 bits of entropy per byte.
  */
-int RAND_poll_ex(RAND_poll_cb rand_add, void *arg)
+int RAND_POOL_fill(RAND_POOL * pool)
 {
     short int code;
     gid_t curr_gid;
     pid_t curr_pid;
     uid_t curr_uid;
     int i, k;
+    int bytes_needed;
     struct timespec ts;
     unsigned char v;
 #  ifdef OPENSSL_SYS_VOS_HPPA
@@ -71,13 +75,15 @@ int RAND_poll_ex(RAND_poll_cb rand_add, void *arg)
      * different processes.
      */
     curr_gid = getgid();
-    rand_add(arg, &curr_gid, sizeof curr_gid, 0);
+    RAND_POOL_add(pool, &curr_gid, sizeof curr_gid, 0);
     curr_pid = getpid();
-    rand_add(arg, &curr_pid, sizeof curr_pid, 0);
+    RAND_POOL_add(pool, &curr_pid, sizeof curr_pid, 0);
     curr_uid = getuid();
-    rand_add(arg, &curr_uid, sizeof curr_uid, 0);
+    RAND_POOL_add(pool, &curr_uid, sizeof curr_uid, 0);
 
-    for (i = 0; i < (RANDOMNESS_NEEDED * 4); i++) {
+    bytes_needed = RAND_POOL_bytes_needed(pool, 2 /*entropy_per_byte*/);
+
+    for (i = 0; i < bytes_needed; i++) {
         /*
          * burn some cpu; hope for interrupts, cache collisions, bus
          * interference, etc.
@@ -98,9 +104,9 @@ int RAND_poll_ex(RAND_poll_cb rand_add, void *arg)
         /* Get wall clock time, take 8 bits. */
         clock_gettime(CLOCK_REALTIME, &ts);
         v = (unsigned char)(ts.tv_nsec & 0xFF);
-        rand_add(arg, &v, sizeof v, 1);
+        RAND_POOL_add(pool, arg, &v, sizeof v , 1);
     }
-    return 1;
+    return RAND_POOL_entropy_available(pool);
 }
 
 # else
@@ -127,26 +133,33 @@ int RAND_poll_ex(RAND_poll_cb rand_add, void *arg)
 #  endif
 
 /*
- * Try the various seeding methods in turn, exit when succesful.
+ * Try the various seeding methods in turn, exit when successful.
+ *
+ * TODO(DRBG): If more than one entropy source is available, is it
+ * preferrable to stop as soon as enough entropy has been collected 
+ * (as favored by @rsalz) or should one rather be defensive and add 
+ * more entropy than requested and/or from different sources?
+ * If yes, how can this be made configurable?
  */
-int RAND_poll_ex(RAND_poll_cb rand_add, void *arg)
+int RAND_POOL_fill(RAND_POOL * pool)
 {
 #  ifdef OPENSSL_RAND_SEED_NONE
     return 0;
 #  else
-    int ok = 1;
-    char temp[RANDOMNESS_NEEDED];
-#   define TEMPSIZE (int)sizeof(temp)
-
+    int bytes, bytes_needed;
+    int entropy_available = 0;
+    unsigned char *buffer;
+    
 #   ifdef OPENSSL_RAND_SEED_GETRANDOM
-    {
-        int i = getrandom(temp, TEMPSIZE, 0);
-
-        if (i >= 0) {
-            rand_add(arg, temp, i, i);
-            if (i == TEMPSIZE)
-                goto done;
+    bytes_needed = RAND_POOL_bytes_needed(pool, 8 /*entropy_per_byte*/);
+    if (bytes_needed > 0) {
+        buffer = RAND_POOL_add_begin(pool, bytes_needed);
+        if (buffer != NULL) {
+            bytes = getrandom(buffer, bytes_needed, 0);
+            entropy_available = RAND_POOL_add_end(pool, bytes, bytes);
         }
+        if (entropy_available > 0)
+            return entropy_available;
     }
 #   endif
 
@@ -157,53 +170,61 @@ int RAND_poll_ex(RAND_poll_cb rand_add, void *arg)
 #   endif
 
 #   ifdef OPENSSL_RAND_SEED_DEVRANDOM
-    {
+    bytes_needed = RAND_POOL_bytes_needed(pool, 8 /*entropy_per_byte*/);
+    if (bytes_needed > 0) {
         static const char *paths[] = { DEVRANDOM, NULL };
         FILE *fp;
-        int i;
+        int i, bytes = 0;
 
         for (i = 0; paths[i] != NULL; i++) {
             if ((fp = fopen(paths[i], "rb")) == NULL)
                 continue;
             setbuf(fp, NULL);
-            if (fread(temp, 1, TEMPSIZE, fp) == TEMPSIZE) {
-                rand_add(arg, temp, TEMPSIZE, TEMPSIZE);
-                fclose(fp);
-                goto done;
+            buffer = RAND_POOL_add_begin(pool, bytes_needed);
+            if (buffer != NULL) {
+                bytes = fread(buffer, 1, bytes_needed, fp);
+                entropy_available = RAND_POOL_add_end(pool, bytes, bytes);
             }
             fclose(fp);
+            if (entropy_available > 0)
+                return entropy_available;
+
+            bytes_needed = RAND_POOL_bytes_needed(pool, 8 /*entropy_per_byte*/);
         }
     }
 #   endif
 
 #   ifdef OPENSSL_RAND_SEED_RDTSC
-    rand_read_tsc(rand_add, arg);
+    entropy_available = rand_read_tsc(pool);
+    if (entropy_available > 0)
+        return entropy_available;
 #   endif
 
 #   ifdef OPENSSL_RAND_SEED_RDCPU
-    if (rand_read_cpu(rand_add, arg))
-        goto done;
+    entropy_available = rand_read_cpu(pool);
+    if (entropy_available > 0)
+        return entropy_available;
 #   endif
 
 #   ifdef OPENSSL_RAND_SEED_EGD
-    {
+    bytes_needed = RAND_POOL_bytes_needed(pool, 8 /*entropy_per_byte*/);
+    if (bytes_needed > 0) {
         static const char *paths[] = { DEVRANDOM_EGD, NULL };
         int i;
 
         for (i = 0; paths[i] != NULL; i++) {
-            if (RAND_query_egd_bytes(paths[i], temp, TEMPSIZE) == TEMPSIZE) {
-                rand_add(arg, temp, TEMPSIZE, TEMPSIZE);
-                goto done;
+            buffer = RAND_POOL_add_begin(pool, bytes_needed);
+            if (buffer != NULL) {
+                bytes = RAND_query_egd_bytes(paths[i], buffer, bytes_needed);
+                entropy_available = RAND_POOL_add_end(pool, bytes, bytes);
             }
+            if (entropy_available > 0)
+                return entropy_available;
         }
     }
 #   endif
 
-    ok = 0;
-
-done:
-    OPENSSL_cleanse(temp, TEMPSIZE);
-    return ok;
+    return RAND_POOL_entropy_available(pool);
 #  endif
 }
 # endif

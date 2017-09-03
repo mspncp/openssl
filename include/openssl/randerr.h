@@ -26,12 +26,17 @@ int ERR_load_RAND_strings(void);
 # define RAND_F_DRBG_GET_ENTROPY                          105
 # define RAND_F_GET_ENTROPY                               106
 # define RAND_F_RAND_BYTES                                100
+# define RAND_F_RAND_DRBG_ADD                             102
 # define RAND_F_RAND_DRBG_GENERATE                        107
 # define RAND_F_RAND_DRBG_INSTANTIATE                     108
 # define RAND_F_RAND_DRBG_NEW                             109
 # define RAND_F_RAND_DRBG_RESEED                          110
 # define RAND_F_RAND_DRBG_SET                             104
 # define RAND_F_RAND_LOAD_FILE                            111
+# define RAND_F_RAND_POOL_ADD                             103
+# define RAND_F_RAND_POOL_ADD_BEGIN                       113
+# define RAND_F_RAND_POOL_ADD_END                         114
+# define RAND_F_RAND_POOL_NEW                             115
 # define RAND_F_RAND_WRITE_FILE                           112
 
 /*
@@ -51,13 +56,16 @@ int ERR_load_RAND_strings(void);
 # define RAND_R_GENERATE_ERROR                            112
 # define RAND_R_INTERNAL_ERROR                            113
 # define RAND_R_IN_ERROR_STATE                            114
+# define RAND_R_NESTED_GROUP                              105
 # define RAND_R_NOT_A_REGULAR_FILE                        122
 # define RAND_R_NOT_INSTANTIATED                          115
+# define RAND_R_NO_GROUP                                  106
 # define RAND_R_PERSONALISATION_STRING_TOO_LONG           116
 # define RAND_R_PRNG_NOT_SEEDED                           100
 # define RAND_R_REQUEST_TOO_LARGE_FOR_DRBG                117
 # define RAND_R_RESEED_ERROR                              118
 # define RAND_R_SELFTEST_FAILURE                          119
+# define RAND_R_SIZE_OUT_OF_RANGE                         124
 # define RAND_R_UNSUPPORTED_DRBG_TYPE                     120
 
 #endif

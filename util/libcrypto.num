@@ -4371,7 +4371,6 @@ SCRYPT_PARAMS_it                        4314	1_1_1	EXIST:EXPORT_VAR_AS_FUNCTION:
 CRYPTO_secure_clear_free                4315	1_1_0g	EXIST::FUNCTION:
 EVP_PKEY_meth_get0                      4316	1_1_1	EXIST::FUNCTION:
 EVP_PKEY_meth_get_count                 4317	1_1_1	EXIST::FUNCTION:
-RAND_poll_ex                            4318	1_1_1	EXIST::FUNCTION:
 RAND_DRBG_get0_global                   4319	1_1_1	EXIST::FUNCTION:
 RAND_priv_bytes                         4320	1_1_1	EXIST::FUNCTION:
 BN_priv_rand                            4321	1_1_1	EXIST::FUNCTION:
@@ -4390,3 +4389,16 @@ EVP_aria_128_gcm                        4333	1_1_1	EXIST::FUNCTION:ARIA
 EVP_aria_128_ccm                        4334	1_1_1	EXIST::FUNCTION:ARIA
 EVP_aria_192_gcm                        4335	1_1_1	EXIST::FUNCTION:ARIA
 CRYPTO_THREAD_glock_new                 4336	1_1_1	EXIST::FUNCTION:
+RAND_POOL_new                           4337	1_1_1	EXIST::FUNCTION:
+RAND_POOL_free                          4338	1_1_1	EXIST::FUNCTION:
+RAND_POOL_buffer                        4339	1_1_1	EXIST::FUNCTION:
+RAND_POOL_detach                        4340	1_1_1	EXIST::FUNCTION:
+RAND_POOL_entropy                       4341	1_1_1	EXIST::FUNCTION:
+RAND_POOL_length                        4342	1_1_1	EXIST::FUNCTION:
+RAND_POOL_entropy_available             4343	1_1_1	EXIST::FUNCTION:
+RAND_POOL_entropy_needed                4344	1_1_1	EXIST::FUNCTION:
+RAND_POOL_bytes_needed                  4345	1_1_1	EXIST::FUNCTION:
+RAND_POOL_add                           4346	1_1_1	EXIST::FUNCTION:
+RAND_POOL_add_begin                     4347	1_1_1	EXIST::FUNCTION:
+RAND_POOL_add_end                       4348	1_1_1	EXIST::FUNCTION:
+RAND_POOL_fill                          4349	1_1_1	EXIST::FUNCTION:

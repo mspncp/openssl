@@ -54,7 +54,7 @@ static struct items_data_st {
     {0, 0}
 };
 
-int RAND_poll_ex(RAND_poll_cb rand_add, void *arg)
+int RAND_POOL_fill(RAND_POOL * pool)
 {
     /* determine the number of items in the JPI array */
     struct items_data_st item_entry;
