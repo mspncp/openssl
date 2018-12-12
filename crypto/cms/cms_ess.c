@@ -14,7 +14,9 @@
 #include <openssl/x509v3.h>
 #include <openssl/err.h>
 #include <openssl/cms.h>
+#include <openssl/ess.h>
 #include "cms_lcl.h"
+#include "internal/ess_int.h"
 
 IMPLEMENT_ASN1_FUNCTIONS(CMS_ReceiptRequest)
 
@@ -334,4 +336,166 @@ ASN1_OCTET_STRING *cms_encode_Receipt(CMS_SignerInfo *si)
  err:
     CMS_ReceiptRequest_free(rr);
     return os;
+}
+
+/*
+ * Add signer certificate's V2 digest to a SignerInfo
+ * structure
+ */
+
+CMS_SignerInfo *CMS_add1_signing_cert_v2(CMS_SignerInfo *si, X509 *signer,
+                                         const EVP_MD *sign_md)
+{
+    ASN1_STRING *seq = NULL;
+    unsigned char *p, *pp = NULL;
+    ESS_SIGNING_CERT_V2 *sc = NULL;
+    ESS_CERT_ID_V2 * cid;
+    unsigned char hash[EVP_MAX_MD_SIZE];
+    unsigned int hash_len = sizeof (hash);
+    X509_ALGOR *alg = NULL;
+    int len, r = 0;
+    GENERAL_NAME *name = NULL;
+    ASN1_INTEGER *serial = NULL;
+    X509_NAME *isname = NULL;
+
+    memset(hash, 0, sizeof (hash));
+
+    /* Create the SigningCertificateV2 attribute 
+     * and adding the signing certificate id.
+     */
+
+    if ((sc = ESS_SIGNING_CERT_V2_new()) == NULL
+        || (cid = ESS_CERT_ID_V2_new()) == NULL
+        || (alg = X509_ALGOR_new()) == NULL)
+        goto err;
+
+    X509_ALGOR_set_md(alg, sign_md);
+    if (alg->algorithm == NULL)
+        goto err;
+    cid->hash_alg = alg;
+    alg = NULL;
+    if (!X509_digest(signer, sign_md, hash, &hash_len))
+        goto err;
+    if (!ASN1_OCTET_STRING_set(cid->hash, hash, hash_len))
+        goto err;
+
+    isname = X509_NAME_dup(X509_get_issuer_name(signer));
+    serial = ASN1_INTEGER_dup(X509_get_serialNumber(signer));
+
+    if (isname && serial) { 
+        if ((cid->issuer_serial = ESS_ISSUER_SERIAL_new()) == NULL
+            || (name = GENERAL_NAME_new()) == NULL)
+            goto err;
+        name->type = GEN_DIRNAME;
+        name->d.dirn = isname;
+        if (!sk_GENERAL_NAME_push(cid->issuer_serial->issuer, name))
+            goto err;
+        name = NULL;
+        ASN1_INTEGER_free(cid->issuer_serial->serial);
+        cid->issuer_serial->serial = serial;
+    }
+
+    if (!sk_ESS_CERT_ID_V2_push(sc->cert_ids, cid))
+        goto err;
+    /* Add SigningCertificateV2 signed attribute to the signer info. */
+    len = i2d_ESS_SIGNING_CERT_V2(sc, NULL);
+    if ((pp = OPENSSL_malloc(len)) == NULL)
+        goto err;
+    p = pp;
+    i2d_ESS_SIGNING_CERT_V2(sc, &p);
+    if (!(seq = ASN1_STRING_new()) || !ASN1_STRING_set(seq, pp, len))
+        goto err;
+    OPENSSL_free(pp);
+    ESS_SIGNING_CERT_V2_free(sc);
+    X509_ALGOR_free(alg);
+    pp = NULL;
+    if (!CMS_signed_add1_attr_by_NID(si, NID_id_smime_aa_signingCertificateV2,
+                                     V_ASN1_SEQUENCE, seq, -1))
+        goto err;
+    r = 1;
+
+ err:
+    ASN1_STRING_free(seq);
+    if (r)
+        return si;
+    CMSerr(CMS_F_CMS_ADD1_SIGNING_CERT_V2, ERR_R_MALLOC_FAILURE);
+    OPENSSL_free(pp);
+    X509_ALGOR_free(alg);
+    ESS_SIGNING_CERT_V2_free(sc);
+    return NULL;
+}
+
+/*
+ * Add signer certificate's digest to a SignerInfo
+ * structure
+ */
+
+CMS_SignerInfo *CMS_add1_signing_cert(CMS_SignerInfo *si, X509 *signer)
+{
+    ASN1_STRING *seq = NULL;
+    unsigned char *p, *pp = NULL;
+    ESS_SIGNING_CERT *sc = NULL;
+    ESS_CERT_ID * cid;
+    unsigned char hash[SHA_DIGEST_LENGTH];
+    int len, r = 0;
+    GENERAL_NAME *name = NULL;
+    ASN1_INTEGER *serial = NULL;
+    X509_NAME *isname = NULL;
+
+    /* Create the SigningCertificate attribute 
+     * and adding the signing certificate id.
+     */
+
+    if ((sc = ESS_SIGNING_CERT_new()) == NULL
+        || (cid = ESS_CERT_ID_new()) == NULL)
+        goto err;
+
+    if (!X509_digest(signer, EVP_sha1(), hash, NULL))
+        goto err;
+    if (!ASN1_OCTET_STRING_set(cid->hash, hash, SHA_DIGEST_LENGTH))
+        goto err;
+
+    isname = X509_NAME_dup(X509_get_issuer_name(signer));
+    serial = ASN1_INTEGER_dup(X509_get_serialNumber(signer));
+
+    if (isname && serial) { 
+        if ((cid->issuer_serial = ESS_ISSUER_SERIAL_new()) == NULL
+            || (name = GENERAL_NAME_new()) == NULL)
+            goto err;
+        name->type = GEN_DIRNAME;
+        name->d.dirn = isname;
+        if (!sk_GENERAL_NAME_push(cid->issuer_serial->issuer, name))
+            goto err;
+        name = NULL;
+        ASN1_INTEGER_free(cid->issuer_serial->serial);
+        cid->issuer_serial->serial = serial;
+    }
+
+    if (!sk_ESS_CERT_ID_push(sc->cert_ids, cid))
+        goto err;
+    /* Add SigningCertificate signed attribute to the signer info. */
+    len = i2d_ESS_SIGNING_CERT(sc, NULL);
+    if ((pp = OPENSSL_malloc(len)) == NULL)
+        goto err;
+    p = pp;
+    i2d_ESS_SIGNING_CERT(sc, &p);
+    if (!(seq = ASN1_STRING_new()) || !ASN1_STRING_set(seq, pp, len))
+        goto err;
+    OPENSSL_free(pp);
+    ESS_SIGNING_CERT_free(sc);
+    pp = NULL;
+    if (!CMS_signed_add1_attr_by_NID(si, NID_id_smime_aa_signingCertificate,
+                                     V_ASN1_SEQUENCE, seq, -1))
+        goto err;
+   
+    r = 1;
+
+ err:
+    ASN1_STRING_free(seq);
+    if (r)
+        return si;
+    CMSerr(CMS_F_CMS_ADD1_SIGNING_CERT, ERR_R_MALLOC_FAILURE);
+    OPENSSL_free(pp);
+    ESS_SIGNING_CERT_free(sc);
+    return NULL;
 }
