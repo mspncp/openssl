@@ -66,8 +66,28 @@ size_t rand_pool_acquire_entropy(RAND_POOL *pool)
     buffer = rand_pool_add_begin(pool, bytes_needed);
     if (buffer != NULL) {
         size_t bytes = 0;
-        if (BCryptGenRandom(NULL, buffer, bytes_needed,
-                            BCRYPT_USE_SYSTEM_PREFERRED_RNG) == STATUS_SUCCESS)
+        NTSTATUS status;
+
+        fprintf(stderr, "_WIN32_WINNT = 0x%08X\n", _WIN32_WINNT);
+        status = BCryptGenRandom(NULL, buffer, bytes_needed,
+                        BCRYPT_USE_SYSTEM_PREFERRED_RNG);
+
+        switch (status) {
+        case STATUS_SUCCESS:
+            fprintf(stderr, "BCryptGenRandom() returned STATUS_SUCCESS\n");
+            break;
+        case STATUS_INVALID_HANDLE:
+            fprintf(stderr, "BCryptGenRandom() returned STATUS_INVALID_HANDLE\n");
+            break;
+        case STATUS_INVALID_PARAMETER:
+            fprintf(stderr, "BCryptGenRandom() returned STATUS_INVALID_PARAMETER\n");
+            break;
+        default:
+            fprintf(stderr, "BCryptGenRandom() returned 0x%08x\n", status);
+            break;
+        }
+
+        if (status == STATUS_SUCCESS)
             bytes = bytes_needed;
 
         rand_pool_add_end(pool, bytes, 8 * bytes);
