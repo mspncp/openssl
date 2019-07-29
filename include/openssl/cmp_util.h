@@ -72,6 +72,7 @@ void OSSL_CMP_print_errors_cb(OSSL_cmp_log_cb_t log_fn);
 
 /*
  * functions manipulating lists of certificates etc.
+ * these functions could be generally useful
  */
 int OSSL_CMP_sk_X509_add1_cert (STACK_OF(X509) *sk, X509 *cert,
                                 int not_duplicate, int prepend);
@@ -80,7 +81,6 @@ int OSSL_CMP_sk_X509_add1_certs(STACK_OF(X509) *sk, const STACK_OF(X509) *certs,
 int OSSL_CMP_X509_STORE_add1_certs(X509_STORE *store, STACK_OF(X509) *certs,
                                    int only_self_signed);
 STACK_OF(X509) *OSSL_CMP_X509_STORE_get1_certs(X509_STORE *store);
-STACK_OF(X509) *OSSL_CMP_build_cert_chain(STACK_OF(X509) *certs, X509 *cert);
 
 #   ifdef  __cplusplus
 }
