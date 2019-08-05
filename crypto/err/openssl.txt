@@ -2101,6 +2101,7 @@ BN_R_TOO_MANY_ITERATIONS:113:too many iterations
 BN_R_TOO_MANY_TEMPORARY_VARIABLES:109:too many temporary variables
 CMP_R_INVALID_ARGS:100:invalid args
 CMP_R_MULTIPLE_SAN_SOURCES:102:multiple san sources
+CMP_R_NO_STDIO:101:no stdio
 CMP_R_NULL_ARGUMENT:103:null argument
 CMS_R_ADD_SIGNER_ERROR:99:add signer error
 CMS_R_ATTRIBUTE_ERROR:161:attribute error
