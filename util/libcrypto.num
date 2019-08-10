@@ -4753,7 +4753,7 @@ OSSL_CMP_CTX_set0_reqExtensions         4862	3_0_0	EXIST::FUNCTION:CMP
 OSSL_CMP_CTX_set1_reqExtensions         4863	3_0_0	EXIST::FUNCTION:CMP
 OSSL_CMP_CTX_reqExtensions_have_SAN     4864	3_0_0	EXIST::FUNCTION:CMP
 OSSL_CMP_CTX_push0_policy               4865	3_0_0	EXIST::FUNCTION:CMP
-OSSL_CMP_CTX_set1_oldClCert             4866	3_0_0	EXIST::FUNCTION:CMP
+OSSL_CMP_CTX_set1_oldCert               4866	3_0_0	EXIST::FUNCTION:CMP
 OSSL_CMP_CTX_set1_p10CSR                4867	3_0_0	EXIST::FUNCTION:CMP
 OSSL_CMP_CTX_push0_genm_ITAV            4868	3_0_0	EXIST::FUNCTION:CMP
 OSSL_CMP_CTX_set_certConf_cb            4869	3_0_0	EXIST::FUNCTION:CMP
