@@ -12,7 +12,7 @@
 #include <openssl/ossl_typ.h>
 #include <openssl/asn1.h>
 #include <openssl/hmac.h>
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 
 /* local HMAC context structure */
 

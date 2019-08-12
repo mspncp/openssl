@@ -15,7 +15,7 @@
 #include <openssl/kdf.h>
 #include "internal/cryptlib.h"
 #include "internal/numbers.h"
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 #include "kdf_local.h"
 
 #define HKDF_MAXBUF 1024

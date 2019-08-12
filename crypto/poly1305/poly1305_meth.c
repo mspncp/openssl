@@ -7,8 +7,8 @@
  * https://www.openssl.org/source/license.html
  */
 #include <openssl/evp.h>
-#include "internal/evp_int.h"
-#include "internal/poly1305.h"
+#include "crypto/evp.h"
+#include "crypto/poly1305.h"
 #include "internal/cryptlib.h"
 #include "poly1305_local.h"
 

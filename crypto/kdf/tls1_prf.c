@@ -51,7 +51,7 @@
 #include "internal/cryptlib.h"
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 #include "kdf_local.h"
 
 static void kdf_tls1_prf_reset(EVP_KDF_IMPL *impl);
