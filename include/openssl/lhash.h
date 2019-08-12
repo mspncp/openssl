@@ -13,6 +13,9 @@
 
 #ifndef OPENSSL_LHASH_H
 # define OPENSSL_LHASH_H
+# pragma once
+
+# define HEADER_LHASH_H  /* deprecated in version 3.0 */
 
 # include <openssl/e_os2.h>
 # include <openssl/bio.h>

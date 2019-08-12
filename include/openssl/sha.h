@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_SHA_H
 # define OPENSSL_SHA_H
+# pragma once
+
+# define HEADER_SHA_H  /* deprecated in version 3.0 */
 
 # include <openssl/e_os2.h>
 # include <stddef.h>

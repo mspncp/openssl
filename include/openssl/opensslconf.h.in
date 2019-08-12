@@ -13,6 +13,9 @@
 
 #ifndef OPENSSL_OPENSSLCONF_H
 # define OPENSSL_OPENSSLCONF_H
+# pragma once
+
+# define HEADER_OPENSSLCONF_H  /* deprecated in version 3.0 */
 
 # ifdef  __cplusplus
 extern "C" {

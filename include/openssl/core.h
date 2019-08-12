@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_CORE_H
 # define OPENSSL_CORE_H
+# pragma once
+
+# define OSSL_CORE_H  /* deprecated in version 3.0 */
 
 # include <stddef.h>
 # include <openssl/types.h>

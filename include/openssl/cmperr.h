@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_CMPERR_H
 # define OPENSSL_CMPERR_H
+# pragma once
+
+# define HEADER_CMPERR_H  /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>

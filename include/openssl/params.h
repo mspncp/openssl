@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_PARAMS_H
 # define OPENSSL_PARAMS_H
+# pragma once
+
+# define HEADER_PARAMS_H  /* deprecated in version 3.0 */
 
 # include <openssl/core.h>
 # include <openssl/bn.h>

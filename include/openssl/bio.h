@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_BIO_H
 # define OPENSSL_BIO_H
+# pragma once
+
+# define HEADER_BIO_H  /* deprecated in version 3.0 */
 
 # include <openssl/e_os2.h>
 

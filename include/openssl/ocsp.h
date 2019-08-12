@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_OCSP_H
 # define OPENSSL_OCSP_H
+# pragma once
+
+# define HEADER_OCSP_H  /* deprecated in version 3.0 */
 
 #include <openssl/opensslconf.h>
 

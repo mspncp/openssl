@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_PKCS12ERR_H
 # define OPENSSL_PKCS12ERR_H
+# pragma once
+
+# define HEADER_PKCS12ERR_H  /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>

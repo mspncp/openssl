@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_CMAC_H
 # define OPENSSL_CMAC_H
+# pragma once
+
+# define HEADER_CMAC_H  /* deprecated in version 3.0 */
 
 # ifndef OPENSSL_NO_CMAC
 

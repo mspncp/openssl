@@ -9,5 +9,8 @@
 
 #ifndef OPENSSL_PEM2_H
 # define OPENSSL_PEM2_H
+# pragma once
+
+# define HEADER_PEM2_H  /* deprecated in version 3.0 */
 # include <openssl/pemerr.h>
 #endif

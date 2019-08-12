@@ -13,6 +13,9 @@
 
 #ifndef OPENSSL_CMP_H
 # define OPENSSL_CMP_H
+# pragma once
+
+# define OSSL_HEADER_CMP_H  /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # ifndef OPENSSL_NO_CMP

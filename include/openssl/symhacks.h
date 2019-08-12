@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_SYMHACKS_H
 # define OPENSSL_SYMHACKS_H
+# pragma once
+
+# define HEADER_SYMHACKS_H  /* deprecated in version 3.0 */
 
 # include <openssl/e_os2.h>
 

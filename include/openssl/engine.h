@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_ENGINE_H
 # define OPENSSL_ENGINE_H
+# pragma once
+
+# define HEADER_ENGINE_H  /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 

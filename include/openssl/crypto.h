@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_CRYPTO_H
 # define OPENSSL_CRYPTO_H
+# pragma once
+
+# define HEADER_CRYPTO_H  /* deprecated in version 3.0 */
 
 # include <stdlib.h>
 # include <time.h>

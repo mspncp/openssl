@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_BNERR_H
 # define OPENSSL_BNERR_H
+# pragma once
+
+# define HEADER_BNERR_H  /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>

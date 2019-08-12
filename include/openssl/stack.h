@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_STACK_H
 # define OPENSSL_STACK_H
+# pragma once
+
+# define HEADER_STACK_H  /* deprecated in version 3.0 */
 
 #ifdef  __cplusplus
 extern "C" {

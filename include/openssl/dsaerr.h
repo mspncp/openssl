@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_DSAERR_H
 # define OPENSSL_DSAERR_H
+# pragma once
+
+# define HEADER_DSAERR_H  /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>

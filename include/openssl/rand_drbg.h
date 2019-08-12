@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_RAND_DRBG_H
 # define OPENSSL_RAND_DRBG_H
+# pragma once
+
+# define HEADER_DRBG_RAND_H  /* deprecated in version 3.0 */
 
 # include <time.h>
 # include <openssl/types.h>
