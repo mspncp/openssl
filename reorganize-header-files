@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 branch=${1:-master}
 build=${BUILD:-no}
 
@@ -9,6 +8,18 @@ logfiles=logfiles
 logfile=${logfiles}/reorganize-header-files.log
 fix_include_guards_sed=${logfiles}/fix-include-guards.sed
 fix_include_guards_compat_sed=${logfiles}/fix-include-guards-compat.sed
+
+# the following three sed files are collected during different
+# commits of this pull request and are going to be joined in the
+# file 'fix-includes.sed' at the end
+fix_crypto_includes_sed=${logfiles}/fix-crypto-includes.sed
+fix_local_includes_sed=${logfiles}/fix-local-includes.sed
+fix_public_includes_sed=${logfiles}/fix-public-includes.sed
+
+# the 'official' fix-includes script...
+fix_includes=util/fix-includes
+# ...and its sed file, joined from the three sed files above
+fix_includes_sed=util/fix-includes.sed
 
 deprecation_version="OPENSSL_API_3"
 deprecation_comment="deprecated in version 3.0"
@@ -225,10 +236,6 @@ sed \
 git add ./crypto/include/internal/store.h
 git rm  ./crypto/include/internal/store_int.h
 
-find \( -name '*.h' -o -name '*.h.in' -o -name '*.c' -o -name README \) -exec sed -E -i \
-	 -e 's|internal/store_int\.h|internal/store.h|g' \
-	 {} \;
-
 mkdir -p include/crypto
 
 # move "crypto/include/internal/*_int.h" => "include/crypto/*.h"
@@ -263,10 +270,21 @@ sed -i 's|internal usage in evp_int.h|internal usage in "crypto/evp.h"|g' includ
 #
 #   "internal/file_int.h" => "crypto/file.h"
 #   "internal/file.h"     => "crypto/file.h"
-find \( -name '*.h' -o -name '*.h.in' -o -name '*.c' -o -name '*.pod' -o -name README \) -exec sed -E -i \
-	 -e "s|internal/([a-z0-9_]+)_int\.h|crypto/\1.h|g" \
-	 -e "s@internal/(${cryptoheaders})@crypto/\1@g" \
-	 {} \;
+cat <<EOF > ${fix_crypto_includes_sed}
+s|internal/([a-z0-9_]+)_int\.h|crypto/\1.h|g ;
+s@internal/(${cryptoheaders})@crypto/\1@g ;
+EOF
+
+find \( \
+	 -name '*.h' -o \
+	 -name '*.h.in' -o \
+	 -name '*.c' -o \
+	 -name '*.ec' -o \
+	 -name 'README*' -o \
+	 -name '*.pod' -o \
+	 -name '*.conf' \
+	 \) -exec sed -E -i \
+	 -f ${fix_crypto_includes_sed} {} \;
 
 # now the directory should be empty
 rmdir crypto/include/internal
@@ -327,9 +345,6 @@ rebuild
 
 # 'constant_time_locl.h' should not have a suffix at all.
 git mv include/internal/{constant_time_locl,constant_time}.h
-find \( -name '*.c' -o -name '*.h' \) -exec sed -E -i \
-	 -e 's/constant_time_locl/constant_time/g' \
-	 {} \;
 
 for suffix in lcl locl int
 do
@@ -339,14 +354,23 @@ do
 	done
 done
 
-# adjust include directives
+cat <<EOF > ${fix_local_includes_sed}
+s/constant_time_locl/constant_time/g ;
+s/_lo?cl\.h/_local.h/g ;
+s/_int\.h/_local.h/g ;
+EOF
+
+# adjust local include directives
 find \( \
-	 -name '*.h' -o -name '*.h.in' -o -name '*.c' -o -name '*.ec' -o -name 'README*' \
-	 -o -name '*.pod' -o -name '*.conf' \
+	 -name '*.h' -o \
+	 -name '*.h.in' -o \
+	 -name '*.c' -o \
+	 -name '*.ec' -o \
+	 -name 'README*' -o \
+	 -name '*.pod' -o \
+	 -name '*.conf' \
 	 \) -exec sed -E -i \
-	 -e 's/_lo?cl\.h/_local.h/g' \
-	 -e 's/_int\.h/_local.h/g' \
-	 {} \;
+	 -f ${fix_local_includes_sed} {} \;
 
 
 git commit -a -F - <<EOF
@@ -372,9 +396,20 @@ rebuild
 
 git mv include/openssl/ossl_typ.h include/openssl/types.h
 
-find \( -name '*.h' -o -name '*.h.in' -o -name '*.c' -o -name README \) -exec sed -E -i \
-	 -e 's|openssl/ossl_typ\.h|openssl/types.h|g' \
-	 {} \;
+cat <<EOF > ${fix_public_includes_sed}
+s|openssl/ossl_typ\.h|openssl/types.h|g ;
+EOF
+
+find \( \
+	 -name '*.h' -o \
+	 -name '*.h.in' -o \
+	 -name '*.c' -o \
+	 -name '*.ec' -o \
+	 -name 'README*' -o \
+	 -name '*.pod' -o \
+	 -name '*.conf' \
+	 \) -exec sed -E -i \
+	 -f ${fix_public_includes_sed} {} \;
 
 git commit -a -F - <<EOF
 Reorganize public header files (part 1)
@@ -390,7 +425,7 @@ rebuild
 #
 
 
-cat > include/openssl/ossl_typ.h <<EOF
+cat <<EOF > include/openssl/ossl_typ.h
 /*
  * Copyright 2019 The OpenSSL Project Authors. All Rights Reserved.
  *
@@ -443,7 +478,6 @@ set +o xtrace
 
 echo '# First Pass: collect include guard fixes into a sed script'
 fix_include_guards
-
 
 echo '# Second Pass: apply include guard fixes'
 for file in $(git ls-files | fgrep .h); do
@@ -499,7 +533,6 @@ for file in $(git ls-files include/openssl | fgrep .h); do
 	sed -i -E -f ${fix_include_guards_compat_sed} ${file}
 done
 
-
 git commit -a -F - <<EOF
 Add legacy include guards to public header files
 
@@ -530,6 +563,57 @@ of <openssl/opensslconf.h> and make automated insertion more tricky.
 
 In addition to the legacy guard, the public header files also receive a
 '# pragma once' directive.
+EOF
+
+${gitlog} --oneline HEAD~..
+rebuild
+
+
+#
+# COMMIT: Add util/fix-includes script
+#
+
+cat <<EOF > ${fix_includes}
+#!/bin/sh
+#
+# Copyright 2019 The OpenSSL Project Authors. All Rights Reserved.
+#
+# Licensed under the Apache License 2.0 (the "License").  You may not use
+# this file except in compliance with the License.  You can obtain a copy
+# in the file LICENSE in the source distribution or at
+# https://www.openssl.org/source/license.html
+
+find -name ossl_typ.h -o \( \\
+	 -name '*.h' -o \\
+	 -name '*.h.in' -o \\
+	 -name '*.c' -o \\
+	 -name '*.ec' -o \\
+	 -name 'README*' -o \\
+	 -name '*.pod' -o \\
+	 -name '*.conf' \\
+	 \) -exec sed -E -i \\
+	 -f ${fix_includes_sed} {} \;
+EOF
+
+chmod +x ${fix_includes}
+cat ${fix_crypto_includes_sed} ${fix_local_includes_sed} ${fix_public_includes_sed} > ${fix_includes_sed}
+
+git add  ${fix_includes} ${fix_includes_sed}
+
+git commit -a -F - <<EOF
+Add util/fix-includes script
+
+This script contains all adjustments to header files which were made
+during the reorganization of the header files. It is meant as an aid
+for other contributors which encounter preprocessor #include errors
+after rebasing over this pull request. Simply running
+
+  util/fix-includes
+
+from the root of the source directory should hopefully fix the problem.
+
+Note: such #include errors are expected only for pull requests which
+add a lot of new code, in particular new compilation modules.
 EOF
 
 ${gitlog} --oneline HEAD~..
