@@ -11,8 +11,8 @@
 #include <stdlib.h>
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
-#include "internal/modes_int.h"
-#include "internal/siv_int.h"
+#include "crypto/modes.h"
+#include "crypto/siv.h"
 
 #ifndef OPENSSL_NO_SIV
 

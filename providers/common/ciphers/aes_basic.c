@@ -15,9 +15,9 @@
 #include <openssl/rand.h>
 #include <openssl/cmac.h>
 #include "ciphers_locl.h"
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 #include "internal/providercommonerr.h"
-#include "internal/aes_platform.h"
+#include "crypto/aes_platform.h"
 
 #define MAXBITCHUNK     ((size_t)1 << (sizeof(size_t) * 8 - 4))
 

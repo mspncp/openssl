@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <openssl/evp.h>
 #include "internal/cryptlib.h"
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 
 /* typedef EVP_MAC_IMPL */
 struct evp_mac_impl_st {

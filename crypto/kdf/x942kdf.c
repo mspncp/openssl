@@ -22,7 +22,7 @@
 # include <openssl/x509.h>
 # include <openssl/obj_mac.h>
 # include "internal/cryptlib.h"
-# include "internal/evp_int.h"
+# include "crypto/evp.h"
 # include "kdf_local.h"
 
 # define X942KDF_MAX_INLEN (1 << 30)

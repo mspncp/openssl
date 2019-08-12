@@ -13,7 +13,7 @@
 #include <openssl/x509v3.h>
 #include <openssl/evp.h>
 #include <openssl/cmac.h>
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 
 /* local CMAC pkey structure */
 

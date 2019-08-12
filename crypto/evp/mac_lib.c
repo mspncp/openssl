@@ -13,7 +13,7 @@
 #include <openssl/err.h>
 #include <openssl/ossl_typ.h>
 #include "internal/nelem.h"
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 #include "evp_locl.h"
 
 EVP_MAC_CTX *EVP_MAC_CTX_new_id(int id)

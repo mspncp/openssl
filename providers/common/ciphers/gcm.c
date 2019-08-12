@@ -11,7 +11,7 @@
 #include <openssl/params.h>
 #include <openssl/core_numbers.h>
 #include <openssl/core_names.h>
-#include "internal/rand_int.h"
+#include "crypto/rand.h"
 #include "internal/provider_algs.h"
 #include "internal/provider_ctx.h"
 #include "internal/providercommonerr.h"

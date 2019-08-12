@@ -14,7 +14,7 @@
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
 #include "internal/cryptlib.h"
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 #include "kdf_local.h"
 
 /* Constants specified in SP800-132 */

@@ -11,7 +11,7 @@
 #include <openssl/aes.h>
 #include <openssl/params.h>
 #include "internal/cryptlib.h"
-#include "internal/modes_int.h"
+#include "crypto/modes.h"
 
 #if defined(OPENSSL_CPUID_OBJ) && defined(__s390__)
 /*-

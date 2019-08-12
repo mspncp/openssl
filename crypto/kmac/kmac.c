@@ -49,7 +49,7 @@
 #include <stdlib.h>
 #include <openssl/evp.h>
 #include "internal/cryptlib.h"
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 
 #define KMAC_MAX_BLOCKSIZE ((1600 - 128*2) / 8) /* 168 */
 #define KMAC_MIN_BLOCKSIZE ((1600 - 256*2) / 8) /* 136 */
