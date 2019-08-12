@@ -10,7 +10,7 @@
 #include <string.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
-#include "ciphers_locl.h"
+#include "ciphers_local.h"
 #include <assert.h>
 #include "internal/providercommonerr.h"
 

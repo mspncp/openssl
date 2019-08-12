@@ -7,7 +7,7 @@ evp_generic_fetch - generic algorithm fetcher and method creator for EVP
 =head1 SYNOPSIS
 
  /* Only for EVP source */
- #include "evp_locl.h"
+ #include "evp_local.h"
 
  void *evp_generic_fetch(OPENSSL_CTX *libctx, int operation_id,
                          const char *name, const char *properties,

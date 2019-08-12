@@ -14,7 +14,7 @@
 #include <openssl/ossl_typ.h>
 #include "internal/nelem.h"
 #include "crypto/evp.h"
-#include "evp_locl.h"
+#include "evp_local.h"
 
 EVP_MAC_CTX *EVP_MAC_CTX_new_id(int id)
 {
