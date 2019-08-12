@@ -7,8 +7,8 @@
  * https://www.openssl.org/source/license.html
  */
 
-#ifndef HEADER_INTERNAL_AES_PLATFORM_H
-# define HEADER_INTERNAL_AES_PLATFORM_H
+#ifndef OSSL_CRYPTO_AES_PLATFORM_H
+# define OSSL_CRYPTO_AES_PLATFORM_H
 
 # ifdef VPAES_ASM
 int vpaes_set_encrypt_key(const unsigned char *userKey, int bits,
@@ -398,4 +398,4 @@ void HWAES_ocb_decrypt(const unsigned char *in, unsigned char *out,
 
 # endif /* HWAES_CAPABLE */
 
-#endif /* HEADER_INTERNAL_AES_PLATFORM_H */
+#endif /* OSSL_CRYPTO_AES_PLATFORM_H */
