@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_DHERR_H
 # define OPENSSL_DHERR_H
+# pragma once
+
+# define HEADER_DHERR_H  /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>

@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_CAST_H
 # define OPENSSL_CAST_H
+# pragma once
+
+# define HEADER_CAST_H  /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 

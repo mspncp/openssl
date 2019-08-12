@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_TRACE_H
 # define OPENSSL_TRACE_H
+# pragma once
+
+# define OSSL_TRACE_H  /* deprecated in version 3.0 */
 
 # include <stdarg.h>
 

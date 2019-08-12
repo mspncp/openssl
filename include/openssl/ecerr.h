@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_ECERR_H
 # define OPENSSL_ECERR_H
+# pragma once
+
+# define HEADER_ECERR_H  /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>

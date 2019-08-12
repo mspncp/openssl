@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_RSAERR_H
 # define OPENSSL_RSAERR_H
+# pragma once
+
+# define HEADER_RSAERR_H  /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>

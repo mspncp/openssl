@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_SAFESTACK_H
 # define OPENSSL_SAFESTACK_H
+# pragma once
+
+# define HEADER_SAFESTACK_H  /* deprecated in version 3.0 */
 
 # include <openssl/stack.h>
 # include <openssl/e_os2.h>

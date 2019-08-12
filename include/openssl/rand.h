@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_RAND_H
 # define OPENSSL_RAND_H
+# pragma once
+
+# define HEADER_RAND_H  /* deprecated in version 3.0 */
 
 # include <stdlib.h>
 # include <openssl/types.h>

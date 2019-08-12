@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_KDF_H
 # define OPENSSL_KDF_H
+# pragma once
+
+# define HEADER_KDF_H  /* deprecated in version 3.0 */
 
 # include <stdarg.h>
 # include <stddef.h>

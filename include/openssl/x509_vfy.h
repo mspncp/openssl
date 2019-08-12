@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_X509_VFY_H
 # define OPENSSL_X509_VFY_H
+# pragma once
+
+# define HEADER_X509_VFY_H  /* deprecated in version 3.0 */
 
 /*
  * Protect against recursion, x509.h and x509_vfy.h each include the other.

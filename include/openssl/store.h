@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_STORE_H
 # define OPENSSL_STORE_H
+# pragma once
+
+# define HEADER_OSSL_STORE_H  /* deprecated in version 3.0 */
 
 # include <stdarg.h>
 # include <openssl/types.h>

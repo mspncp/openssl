@@ -11,6 +11,9 @@
 
 #ifndef OPENSSL_ASYNC_H
 # define OPENSSL_ASYNC_H
+# pragma once
+
+# define HEADER_ASYNC_H  /* deprecated in version 3.0 */
 
 #if defined(_WIN32)
 # if defined(BASETYPES) || defined(_WINDEF_H)

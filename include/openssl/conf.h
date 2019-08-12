@@ -9,6 +9,9 @@
 
 #ifndef  OPENSSL_CONF_H
 # define OPENSSL_CONF_H
+# pragma once
+
+# define HEADER_CONF_H  /* deprecated in version 3.0 */
 
 # include <openssl/bio.h>
 # include <openssl/lhash.h>

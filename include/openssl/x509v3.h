@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_X509V3_H
 # define OPENSSL_X509V3_H
+# pragma once
+
+# define HEADER_X509V3_H  /* deprecated in version 3.0 */
 
 # include <openssl/bio.h>
 # include <openssl/x509.h>
