@@ -13,7 +13,7 @@
 #include <openssl/evp.h>
 #include "internal/cryptlib.h"
 #include "crypto/evp.h"
-#include "evp_locl.h"
+#include "evp_local.h"
 
 int EVP_PKEY_sign_init(EVP_PKEY_CTX *ctx)
 {

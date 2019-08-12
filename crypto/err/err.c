@@ -20,9 +20,9 @@
 #include <openssl/opensslconf.h>
 #include "internal/thread_once.h"
 #include "crypto/ctype.h"
-#include "internal/constant_time_locl.h"
+#include "internal/constant_time.h"
 #include "e_os.h"
-#include "err_locl.h"
+#include "err_local.h"
 
 static int err_load_strings(const ERR_STRING_DATA *str);
 

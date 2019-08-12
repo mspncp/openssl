@@ -14,7 +14,7 @@
 #include <openssl/aes.h>
 #include <openssl/rand.h>
 #include <openssl/cmac.h>
-#include "ciphers_locl.h"
+#include "ciphers_local.h"
 #include "crypto/evp.h"
 #include "internal/providercommonerr.h"
 #include "crypto/aes_platform.h"

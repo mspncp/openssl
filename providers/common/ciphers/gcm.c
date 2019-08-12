@@ -15,7 +15,7 @@
 #include "internal/provider_algs.h"
 #include "internal/provider_ctx.h"
 #include "internal/providercommonerr.h"
-#include "ciphers_locl.h"
+#include "ciphers_local.h"
 
 /* TODO(3.0) Figure out what flags are really needed */
 #define AEAD_GCM_FLAGS (EVP_CIPH_FLAG_AEAD_CIPHER | EVP_CIPH_FLAG_DEFAULT_ASN1 \

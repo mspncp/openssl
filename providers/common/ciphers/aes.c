@@ -16,7 +16,7 @@
 #include <openssl/rand.h>
 #include "internal/cryptlib.h"
 #include "internal/provider_algs.h"
-#include "ciphers_locl.h"
+#include "ciphers_local.h"
 #include "internal/providercommonerr.h"
 
 static OSSL_OP_cipher_encrypt_init_fn aes_einit;
