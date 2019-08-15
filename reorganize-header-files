@@ -80,7 +80,8 @@ function fix_include_guards () {
 		case "$file" in
 			include/openssl/*)
 				sed_script="s/INCLUDE_OPENSSL_/OPENSSL_/g"
-				add_compat=yes
+				# add compatibility header, but only if file exists in 1.1.1 already
+				git cat-file -e "OpenSSL_1_1_1-stable:$file" 2>/dev/null && add_compat=yes
 				;;
 			include/*/*)
 				echo "inc: $file"
@@ -129,7 +130,7 @@ function fix_include_guards () {
 					echo "s/([ !])${old_guard}/\1${new_guard}/g ;" >> ${fix_include_guards_sed}
 
 					if [ "${add_compat}" == "yes" ] ; then
-						echo "s|\# *define +${new_guard}|# define ${new_guard}\n# pragma once\n\n# define ${old_guard}  /* ${deprecation_comment} */|g ;" >> ${fix_include_guards_compat_sed}
+						echo "s|\# *define +${new_guard}|# define ${new_guard}\n# pragma once\n\n# include <openssl/macros.h>\n# if !${deprecation_version}\n#  define HEADER_FILE_H /* ${deprecation_comment} */\n# endif|g ;" >> ${fix_include_guards_compat_sed}
 					fi
 				else
 					echo "$old_guard  [OLD]"
@@ -545,7 +546,10 @@ include/openssl/file.h:
     # define __OPENSSL_FILE_H__
     # pragma once
 
-    # define HEADER_FILE_H /* ${deprecation_comment} */
+    # include <openssl/macros.h>
+    # if !${deprecation_version}
+    #  define HEADER_FILE_H /* ${deprecation_comment} */
+    # endif
     ...
 
 This is going to ensure that applications which use the old include guards
@@ -556,10 +560,6 @@ externally, for example like this
     #endif
 
 will not fail to compile.
-
-Actually, it would be nice to have a ${deprecation_version} deprecation guard
-around the legacy include guards, but that would require the inclusion
-of <openssl/opensslconf.h> and make automated insertion more tricky.
 
 In addition to the legacy guard, the public header files also receive a
 '# pragma once' directive.
