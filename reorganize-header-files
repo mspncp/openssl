@@ -78,9 +78,13 @@ function fix_include_guards () {
 		new_guard=""
 
 		case "$file" in
+			include/openssl/opensslconf.h.in)
+				sed_script="s/INCLUDE_OPENSSL_/OPENSSL_/g"
+				# add_compat=no, because compatibility guard was already added (manually) to the end
+				;;
 			include/openssl/*)
 				sed_script="s/INCLUDE_OPENSSL_/OPENSSL_/g"
-				# add compatibility header, but only if file exists in 1.1.1 already
+				# add compatibility guard, but only if file exists in 1.1.1 already
 				git cat-file -e "OpenSSL_1_1_1-stable:$file" 2>/dev/null && add_compat=yes
 				;;
 			include/*/*)
@@ -130,7 +134,7 @@ function fix_include_guards () {
 					echo "s/([ !])${old_guard}/\1${new_guard}/g ;" >> ${fix_include_guards_sed}
 
 					if [ "${add_compat}" == "yes" ] ; then
-						echo "s|\# *define +${new_guard}|# define ${new_guard}\n# pragma once\n\n# include <openssl/macros.h>\n# if !${deprecation_version}\n#  define HEADER_FILE_H /* ${deprecation_comment} */\n# endif|g ;" >> ${fix_include_guards_compat_sed}
+						echo "s|\# *define +${new_guard}|# define ${new_guard}\n# pragma once\n\n# include <openssl/macros.h>\n# if !${deprecation_version}\n#  define ${old_guard} /* ${deprecation_comment} */\n# endif|g ;" >> ${fix_include_guards_compat_sed}
 					fi
 				else
 					echo "$old_guard  [OLD]"
