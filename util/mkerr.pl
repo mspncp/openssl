@@ -447,8 +447,8 @@ foreach my $lib ( keys %errorfile ) {
  * https://www.openssl.org/source/license.html
  */
 
-#ifndef HEADER_${lib}ERR_H
-# define HEADER_${lib}ERR_H
+#ifndef __OPENSSL_${lib}ERR_H__
+# define __OPENSSL_${lib}ERR_H__
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>
