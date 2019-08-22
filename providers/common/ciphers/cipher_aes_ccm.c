@@ -9,7 +9,7 @@
 
 /* Dispatch functions for AES CCM mode */
 
-#include "cipher_locl.h"
+#include "cipher_local.h"
 
 static void *aes_ccm_newctx(void *provctx, size_t keybits)
 {

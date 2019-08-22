@@ -11,7 +11,7 @@
  * Generic dispatch table functions for ciphers.
  */
 
-#include "cipher_locl.h"
+#include "cipher_local.h"
 
 #define MAXCHUNK    ((size_t)1 << (sizeof(long) * 8 - 2))
 #define MAXBITCHUNK ((size_t)1 << (sizeof(size_t) * 8 - 4))

@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "cipher_locl.h"
+#include "cipher_local.h"
 
 #if !defined(OPENSSL_NO_CAMELLIA)
 static int cipher_hw_camellia_initkey(PROV_CIPHER_CTX *dat,

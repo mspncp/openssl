@@ -9,7 +9,7 @@
 
 /* Dispatch functions for ARIA GCM mode */
 
-#include "cipher_locl.h"
+#include "cipher_local.h"
 
 static void *aria_gcm_newctx(void *provctx, size_t keybits)
 {

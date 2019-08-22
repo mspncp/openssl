@@ -19,7 +19,7 @@
 #include "crypto/asn1.h"
 #include "crypto/evp.h"
 #include "internal/numbers.h"
-#include "evp_locl.h"
+#include "evp_local.h"
 
 typedef int sk_cmp_fn_type(const char *const *a, const char *const *b);
 

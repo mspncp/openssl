@@ -9,7 +9,7 @@
 
 /* Dispatch functions for AES GCM mode */
 
-#include "cipher_locl.h"
+#include "cipher_local.h"
 
 static void *aes_gcm_newctx(void *provctx, size_t keybits)
 {
