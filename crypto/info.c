@@ -9,7 +9,7 @@
 
 #include <stddef.h>
 #include <openssl/crypto.h>
-#include "internal/dso_conf.h"
+#include "crypto/dso_conf.h"
 #include "e_os.h"
 
 const char *OPENSSL_info(int t)

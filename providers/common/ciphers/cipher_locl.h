@@ -15,10 +15,10 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include "internal/cryptlib.h"
-#include "internal/modes_int.h"
+#include "crypto/modes.h"
 #include "internal/provider_algs.h"
 #include "internal/providercommonerr.h"
-#include "internal/ciphermode_platform.h"
+#include "crypto/ciphermode_platform.h"
 
 #define GENERIC_BLOCK_SIZE 16
 #define IV_STATE_UNINITIALISED 0  /* initial state is not initialized */

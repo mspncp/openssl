@@ -8,7 +8,7 @@
  */
 
 #if !defined(OPENSSL_NO_ARIA)
-# include "internal/aria.h"
+# include "crypto/aria.h"
 
 typedef struct prov_aria_ctx_st {
     PROV_CIPHER_CTX base;      /* Must be first */

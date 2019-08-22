@@ -112,7 +112,7 @@ struct prov_ccm_hw_st {
 const PROV_CCM_HW *PROV_AES_HW_ccm(size_t keylen);
 
 #if !defined(OPENSSL_NO_ARIA) && !defined(FIPS_MODE)
-# include "internal/aria.h"
+# include "crypto/aria.h"
 typedef struct prov_aria_ccm_ctx_st {
     PROV_CCM_CTX base; /* Must be first */
     union {

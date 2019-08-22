@@ -43,7 +43,7 @@
 #include <openssl/core_names.h>
 #include <openssl/params.h>
 #include "internal/cryptlib.h"
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 #include "kdf_local.h"
 
 struct evp_kdf_impl_st {

@@ -8,7 +8,7 @@
  */
 
 #include <openssl/evp.h>
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 
 void openssl_add_all_kdfs_int(void)
 {

@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "internal/cryptlib_int.h"
+#include "crypto/cryptlib.h"
 #include "internal/thread_once.h"
 
 struct openssl_ctx_onfree_list_st {
