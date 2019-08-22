@@ -10,6 +10,12 @@
 
 #ifndef OPENSSL_X509_H
 # define OPENSSL_X509_H
+# pragma once
+
+# include <openssl/macros.h>
+# if !OPENSSL_API_3
+#  define HEADER_X509_H /* deprecated in version 3.0 */
+# endif
 
 # include <openssl/e_os2.h>
 # include <openssl/types.h>

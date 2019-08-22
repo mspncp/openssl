@@ -9,6 +9,12 @@
 
 #ifndef OPENSSL_PKCS12_H
 # define OPENSSL_PKCS12_H
+# pragma once
+
+# include <openssl/macros.h>
+# if !OPENSSL_API_3
+#  define HEADER_PKCS12_H /* deprecated in version 3.0 */
+# endif
 
 # include <openssl/bio.h>
 # include <openssl/x509.h>

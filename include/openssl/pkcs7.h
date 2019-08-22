@@ -9,6 +9,12 @@
 
 #ifndef OPENSSL_PKCS7_H
 # define OPENSSL_PKCS7_H
+# pragma once
+
+# include <openssl/macros.h>
+# if !OPENSSL_API_3
+#  define HEADER_PKCS7_H /* deprecated in version 3.0 */
+# endif
 
 # include <openssl/asn1.h>
 # include <openssl/bio.h>

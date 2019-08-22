@@ -9,6 +9,12 @@
 
 #ifndef OPENSSL_OPENSSLV_H
 # define OPENSSL_OPENSSLV_H
+# pragma once
+
+# include <openssl/macros.h>
+# if !OPENSSL_API_3
+#  define HEADER_OPENSSLV_H /* deprecated in version 3.0 */
+# endif
 
 # ifdef  __cplusplus
 extern "C" {

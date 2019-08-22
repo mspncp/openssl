@@ -9,6 +9,12 @@
 
 #ifndef  OPENSSL_CONF_H
 # define OPENSSL_CONF_H
+# pragma once
+
+# include <openssl/macros.h>
+# if !OPENSSL_API_3
+#  define HEADER_CONF_H /* deprecated in version 3.0 */
+# endif
 
 # include <openssl/bio.h>
 # include <openssl/lhash.h>

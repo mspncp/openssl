@@ -9,6 +9,12 @@
 
 #ifndef OPENSSL_MD4_H
 # define OPENSSL_MD4_H
+# pragma once
+
+# include <openssl/macros.h>
+# if !OPENSSL_API_3
+#  define HEADER_MD4_H /* deprecated in version 3.0 */
+# endif
 
 # include <openssl/opensslconf.h>
 

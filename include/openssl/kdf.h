@@ -9,6 +9,12 @@
 
 #ifndef OPENSSL_KDF_H
 # define OPENSSL_KDF_H
+# pragma once
+
+# include <openssl/macros.h>
+# if !OPENSSL_API_3
+#  define HEADER_KDF_H /* deprecated in version 3.0 */
+# endif
 
 # include <stdarg.h>
 # include <stddef.h>

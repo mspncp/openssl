@@ -10,6 +10,12 @@
 
 #ifndef OPENSSL_ECERR_H
 # define OPENSSL_ECERR_H
+# pragma once
+
+# include <openssl/macros.h>
+# if !OPENSSL_API_3
+#  define HEADER_ECERR_H /* deprecated in version 3.0 */
+# endif
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>

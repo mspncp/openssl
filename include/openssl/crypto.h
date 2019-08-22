@@ -10,6 +10,12 @@
 
 #ifndef OPENSSL_CRYPTO_H
 # define OPENSSL_CRYPTO_H
+# pragma once
+
+# include <openssl/macros.h>
+# if !OPENSSL_API_3
+#  define HEADER_CRYPTO_H /* deprecated in version 3.0 */
+# endif
 
 # include <stdlib.h>
 # include <time.h>
