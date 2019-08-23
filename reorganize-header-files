@@ -85,7 +85,11 @@ function fix_include_guards () {
 			include/openssl/*)
 				sed_script="s/INCLUDE_OPENSSL_/OPENSSL_/g"
 				# add compatibility guard, but only if file exists in 1.1.1 already
-				git cat-file -e "OpenSSL_1_1_1-stable:$file" 2>/dev/null && add_compat=yes
+				if [ "${branch}" == "master" ]; then
+					git cat-file -e "OpenSSL_1_1_1-stable:$file" 2>/dev/null && add_compat=yes
+				else
+					add_compat=yes
+				fi
 				;;
 			include/*/*)
 				echo "inc: $file"
@@ -134,7 +138,13 @@ function fix_include_guards () {
 					echo "s/([ !])${old_guard}/\1${new_guard}/g ;" >> ${fix_include_guards_sed}
 
 					if [ "${add_compat}" == "yes" ] ; then
-						echo "s|\# *define +${new_guard}|# define ${new_guard}\n# pragma once\n\n# include <openssl/macros.h>\n# if !${deprecation_version}\n#  define ${old_guard} /* ${deprecation_comment} */\n# endif|g ;" >> ${fix_include_guards_compat_sed}
+						if [ "${branch}" == "master" ]; then
+							# on master, we include <openssl/macros.h> and add a !OPENSSL_API_3 deprecation guard around the legacy include guard
+							echo "s|\# *define +${new_guard}|# define ${new_guard}\n# pragma once\n\n# include <openssl/macros.h>\n# if !${deprecation_version}\n#  define ${old_guard} /* ${deprecation_comment} */\n# endif|g ;" >> ${fix_include_guards_compat_sed}
+						else
+							# on 1.1.1, we add the bare legacy include guard
+							echo "s|\# *define +${new_guard}|# define ${new_guard}\n# pragma once\n\n# define ${old_guard} /* ${deprecation_comment} */|g ;" >> ${fix_include_guards_compat_sed}
+						fi
 					fi
 				else
 					echo "$old_guard  [OLD]"
