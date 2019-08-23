@@ -9,7 +9,7 @@
 
 /* Dispatch functions for gcm mode */
 
-#include "cipher_locl.h"
+#include "cipher_local.h"
 #include "crypto/rand.h"
 #include "internal/provider_ctx.h"
 

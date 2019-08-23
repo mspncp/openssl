@@ -7,7 +7,7 @@
  * https://www.openssl.org/source/license.html
  */
 
-#include "cipher_locl.h"
+#include "cipher_local.h"
 
 static const PROV_GCM_HW aes_gcm;
 

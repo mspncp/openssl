@@ -9,7 +9,7 @@
 
 /* Dispatch functions for ARIA CCM mode */
 
-#include "cipher_locl.h"
+#include "cipher_local.h"
 
 static void *aria_ccm_newctx(void *provctx, size_t keybits)
 {

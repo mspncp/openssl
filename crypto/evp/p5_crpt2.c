@@ -16,7 +16,7 @@
 #include <openssl/hmac.h>
 #include <openssl/trace.h>
 #include "crypto/evp.h"
-#include "evp_locl.h"
+#include "evp_local.h"
 
 int PKCS5_PBKDF2_HMAC(const char *pass, int passlen,
                       const unsigned char *salt, int saltlen, int iter,

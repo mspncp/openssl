@@ -8,7 +8,7 @@
  */
 
 #include <assert.h>
-#include "cipher_locl.h"
+#include "cipher_local.h"
 
 /*
  * Fills a single block of buffered data from the input, and returns the amount
