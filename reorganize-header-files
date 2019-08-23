@@ -502,7 +502,7 @@ done
 
 # fix mkerr.pl
 sed -i \
-	-e 's/HEADER_\${lib}ERR_H/__OPENSSL_${lib}ERR_H__/g' \
+	-e 's/HEADER_\${lib}ERR_H/OPENSSL_${lib}ERR_H/g' \
 	util/mkerr.pl
 
 set -o xtrace
