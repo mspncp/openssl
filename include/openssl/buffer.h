@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_BUFFER_H
 # define OPENSSL_BUFFER_H
+# pragma once
+
+# define HEADER_BUFFER_H /* deprecated in version 3.0 */
 
 # include <openssl/types.h>
 # ifndef OPENSSL_CRYPTO_H

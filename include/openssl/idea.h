@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_IDEA_H
 # define OPENSSL_IDEA_H
+# pragma once
+
+# define HEADER_IDEA_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 

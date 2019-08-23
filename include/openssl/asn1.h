@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_ASN1_H
 # define OPENSSL_ASN1_H
+# pragma once
+
+# define HEADER_ASN1_H /* deprecated in version 3.0 */
 
 # include <time.h>
 # include <openssl/e_os2.h>

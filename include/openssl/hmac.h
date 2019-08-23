@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_HMAC_H
 # define OPENSSL_HMAC_H
+# pragma once
+
+# define HEADER_HMAC_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 

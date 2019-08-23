@@ -34,6 +34,9 @@
 
 #ifndef OPENSSL_SEED_H
 # define OPENSSL_SEED_H
+# pragma once
+
+# define HEADER_SEED_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 

@@ -13,6 +13,9 @@
 
 #ifndef OPENSSL_SRP_H
 # define OPENSSL_SRP_H
+# pragma once
+
+# define HEADER_SRP_H /* deprecated in version 3.0 */
 
 #include <openssl/opensslconf.h>
 

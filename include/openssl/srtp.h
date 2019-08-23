@@ -15,6 +15,9 @@
 
 #ifndef OPENSSL_SRTP_H
 # define OPENSSL_SRTP_H
+# pragma once
+
+# define HEADER_D1_SRTP_H /* deprecated in version 3.0 */
 
 # include <openssl/ssl.h>
 

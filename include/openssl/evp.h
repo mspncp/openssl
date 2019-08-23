@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_EVP_H
 # define OPENSSL_EVP_H
+# pragma once
+
+# define HEADER_ENVELOPE_H /* deprecated in version 3.0 */
 
 # include <stdarg.h>
 

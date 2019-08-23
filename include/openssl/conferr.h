@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_CONFERR_H
 # define OPENSSL_CONFERR_H
+# pragma once
+
+# define HEADER_CONFERR_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>

@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_BLOWFISH_H
 # define OPENSSL_BLOWFISH_H
+# pragma once
+
+# define HEADER_BLOWFISH_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 

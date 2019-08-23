@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_MODES_H
 # define OPENSSL_MODES_H
+# pragma once
+
+# define HEADER_MODES_H /* deprecated in version 3.0 */
 
 # include <stddef.h>
 # include <openssl/types.h>

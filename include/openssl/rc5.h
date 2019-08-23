@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_RC5_H
 # define OPENSSL_RC5_H
+# pragma once
+
+# define HEADER_RC5_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 

@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_OCSPERR_H
 # define OPENSSL_OCSPERR_H
+# pragma once
+
+# define HEADER_OCSPERR_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>

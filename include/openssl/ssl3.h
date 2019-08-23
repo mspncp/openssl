@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_SSL3_H
 # define OPENSSL_SSL3_H
+# pragma once
+
+# define HEADER_SSL3_H /* deprecated in version 3.0 */
 
 # include <openssl/comp.h>
 # include <openssl/buffer.h>

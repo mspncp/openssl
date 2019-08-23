@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_ERR_H
 # define OPENSSL_ERR_H
+# pragma once
+
+# define HEADER_ERR_H /* deprecated in version 3.0 */
 
 # include <openssl/e_os2.h>
 

@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_TYPES_H
 # define OPENSSL_TYPES_H
+# pragma once
+
+# define HEADER_OPENSSL_TYPES_H /* deprecated in version 3.0 */
 
 #include <limits.h>
 

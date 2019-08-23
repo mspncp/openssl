@@ -11,6 +11,9 @@
 
 #ifndef OPENSSL_TLS1_H
 # define OPENSSL_TLS1_H
+# pragma once
+
+# define HEADER_TLS1_H /* deprecated in version 3.0 */
 
 # include <openssl/buffer.h>
 # include <openssl/x509.h>

@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_CMS_H
 # define OPENSSL_CMS_H
+# pragma once
+
+# define HEADER_CMS_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 

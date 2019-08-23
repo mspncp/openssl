@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_PROVIDER_H
 # define OPENSSL_PROVIDER_H
+# pragma once
+
+# define OSSL_PROVIDER_H /* deprecated in version 3.0 */
 
 # include <openssl/core.h>
 

@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_PEMERR_H
 # define OPENSSL_PEMERR_H
+# pragma once
+
+# define HEADER_PEMERR_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>

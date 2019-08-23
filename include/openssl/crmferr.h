@@ -10,6 +10,9 @@
 
 #ifndef OPENSSL_CRMFERR_H
 # define OPENSSL_CRMFERR_H
+# pragma once
+
+# define HEADER_CRMFERR_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>

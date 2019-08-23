@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_SSL2_H
 # define OPENSSL_SSL2_H
+# pragma once
+
+# define HEADER_SSL2_H /* deprecated in version 3.0 */
 
 #ifdef  __cplusplus
 extern "C" {

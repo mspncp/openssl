@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_TXT_DB_H
 # define OPENSSL_TXT_DB_H
+# pragma once
+
+# define HEADER_TXT_DB_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 # include <openssl/bio.h>

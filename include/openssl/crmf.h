@@ -13,6 +13,9 @@
 
 #ifndef OPENSSL_CRMF_H
 # define OPENSSL_CRMF_H
+# pragma once
+
+# define OSSL_HEADER_CRMF_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 

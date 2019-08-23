@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_EBCDIC_H
 # define OPENSSL_EBCDIC_H
+# pragma once
+
+# define HEADER_EBCDIC_H /* deprecated in version 3.0 */
 
 # include <stdlib.h>
 

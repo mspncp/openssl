@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_FIPS_NAMES_H
 # define OPENSSL_FIPS_NAMES_H
+# pragma once
+
+# define OSSL_FIPS_NAMES_H /* deprecated in version 3.0 */
 
 # ifdef __cplusplus
 extern "C" {

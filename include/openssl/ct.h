@@ -9,6 +9,9 @@
 
 #ifndef OPENSSL_CT_H
 # define OPENSSL_CT_H
+# pragma once
+
+# define HEADER_CT_H /* deprecated in version 3.0 */
 
 # include <openssl/opensslconf.h>
 
