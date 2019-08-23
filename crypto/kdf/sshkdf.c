@@ -14,7 +14,7 @@
 #include <openssl/kdf.h>
 #include "internal/cryptlib.h"
 #include "internal/numbers.h"
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 #include "kdf_local.h"
 
 /* See RFC 4253, Section 7.2 */

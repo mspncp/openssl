@@ -15,9 +15,9 @@
 #include <openssl/aes.h>
 #include <openssl/sha.h>
 #include <openssl/rand.h>
-#include "internal/modes_int.h"
+#include "crypto/modes.h"
 #include "internal/constant_time_locl.h"
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 
 typedef struct {
     AES_KEY ks;

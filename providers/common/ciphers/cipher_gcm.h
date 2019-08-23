@@ -139,7 +139,7 @@ const PROV_GCM_HW *PROV_AES_HW_gcm(size_t keybits);
 
 #if !defined(OPENSSL_NO_ARIA) && !defined(FIPS_MODE)
 
-#include "internal/aria.h"
+#include "crypto/aria.h"
 
 typedef struct prov_aria_gcm_ctx_st {
     PROV_GCM_CTX base;              /* must be first entry in struct */

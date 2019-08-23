@@ -21,7 +21,7 @@
 #include <openssl/provider.h>
 #include "testutil.h"
 #include "internal/nelem.h"
-#include "internal/evp_int.h"
+#include "crypto/evp.h"
 
 /*
  * kExampleRSAKeyDER is an RSA private key in ASN.1, DER format. Of course, you
