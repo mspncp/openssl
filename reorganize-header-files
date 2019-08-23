@@ -92,35 +92,34 @@ function fix_include_guards () {
 				fi
 				;;
 			include/*/*)
-				echo "inc: $file"
 				sed_script="s/INCLUDE_/OSSL_/g"
 				;;
+			crypto/ec/curve448/*)
+				sed_script="s/CRYPTO_EC_CURVE448_/OSSL_CRYPTO_EC_/g"
+				;;
 			crypto/*)
-				new_guard="OSSL_CRYPTO_$upper_basename"
+				sed_script="s/CRYPTO_/OSSL_CRYPTO_/g"
 				;;
 			ssl/*)
-				new_guard="OSSL_SSL_$upper_basename"
+				sed_script="s/SSL_/OSSL_SSL_/g"
 				;;
 			engines/*)
-				new_guard="OSSL_ENGINES_$upper_basename"
+				sed_script="s/ENGINES_/OSSL_ENGINES_/g"
 				;;
-			providers/common/include/*)
-				new_guard="OSSL_PROVIDERS_$upper_basename"
+			providers/common/include/internal/*)
+				sed_script="s/PROVIDERS_COMMON_INCLUDE_INTERNAL_/OSSL_PROVIDERS_/g"
 				;;
 			test/ossl_shim/*)
-				new_guard="OSSL_SHIM_TEST_$upper_basename"
+				sed_script="s/TEST_OSSL_SHIM_/OSSL_TEST_SHIM_/g"
 				;;
 			test/*)
-				new_guard="OSSL_TEST_$upper_basename"
+				sed_script="s/TEST_/OSSL_TEST_/g"
 				;;
 			apps/*)
 				new_guard="OSSL_APPS_$upper_basename"
 				;;
-			apps/*)
-				new_guard="OSSL_$upper_basename"
-				;;
 			*)
-				new_guard="OSSL_$upper_basename"
+				new_guard="OSSL_$upper_filename"
 				;;
 		esac
 
