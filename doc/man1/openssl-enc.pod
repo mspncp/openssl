@@ -423,6 +423,9 @@ certain parameters. So if, for example, you want to use RC2 with a
 
 The default digest was changed from MD5 to SHA256 in OpenSSL 1.1.0.
 
+The openssl enc -ciphers option was deprecated in OpenSSL 1.1.1
+in favor of the openssl enc -list option.
+
 =head1 COPYRIGHT
 
 Copyright 2000-2019 The OpenSSL Project Authors. All Rights Reserved.
