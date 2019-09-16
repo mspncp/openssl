@@ -449,8 +449,9 @@ static void show_digests(const OBJ_NAME *name, void *arg)
     if (++dec->n == 3) {
         BIO_printf(dec->bio, "\n");
         dec->n = 0;
-    } else
+    } else {
         BIO_printf(dec->bio, " ");
+    }
 }
 
 /*
