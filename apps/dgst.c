@@ -437,6 +437,9 @@ static void show_digests(const OBJ_NAME *name, void *arg)
     struct doall_dgst_digests *dec = (struct doall_dgst_digests *)arg;
     const EVP_MD *md = NULL;
 
+    if (strcasestr(name->name, "with") != NULL)
+        return;
+
     if (!islower((unsigned char)*name->name))
         return;
 
