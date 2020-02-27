@@ -339,7 +339,7 @@ static int error_check(DRBG_SELFTEST_DATA *td)
 
     /* Test detection of too large personalisation string */
     if (!init(drbg, td, &t)
-            || RAND_DRBG_instantiate(drbg, td->pers, drbg->max_perslen + 1) > 0)
+            || !TEST_false(RAND_DRBG_instantiate(drbg, td->pers, drbg->max_perslen + 1)))
         goto err;
 
     /*
@@ -348,7 +348,7 @@ static int error_check(DRBG_SELFTEST_DATA *td)
 
     /* Test entropy source failure detection: i.e. returns no data */
     t.entropylen = 0;
-    if (TEST_int_le(RAND_DRBG_instantiate(drbg, td->pers, td->perslen), 0))
+    if (!TEST_false(RAND_DRBG_instantiate(drbg, td->pers, td->perslen)))
         goto err;
 
     /* Try to generate output from uninstantiated DRBG */
@@ -358,16 +358,18 @@ static int error_check(DRBG_SELFTEST_DATA *td)
         goto err;
 
     /* Test insufficient entropy */
+    if (!init(drbg, td, &t))
+        goto err;
     t.entropylen = drbg->min_entropylen - 1;
-    if (!init(drbg, td, &t)
-            || RAND_DRBG_instantiate(drbg, td->pers, td->perslen) > 0
+    if (!TEST_false(RAND_DRBG_instantiate(drbg, td->pers, td->perslen))
             || !uninstantiate(drbg))
         goto err;
 
     /* Test too much entropy */
+    if (!init(drbg, td, &t))
+        goto err;
     t.entropylen = drbg->max_entropylen + 1;
-    if (!init(drbg, td, &t)
-            || RAND_DRBG_instantiate(drbg, td->pers, td->perslen) > 0
+    if (!TEST_false(RAND_DRBG_instantiate(drbg, td->pers, td->perslen))
             || !uninstantiate(drbg))
         goto err;
 
@@ -377,18 +379,20 @@ static int error_check(DRBG_SELFTEST_DATA *td)
 
     /* Test too small nonce */
     if (drbg->min_noncelen) {
+        if (!init(drbg, td, &t))
+            goto err;
         t.noncelen = drbg->min_noncelen - 1;
-        if (!init(drbg, td, &t)
-                || RAND_DRBG_instantiate(drbg, td->pers, td->perslen) > 0
+        if (!TEST_false(RAND_DRBG_instantiate(drbg, td->pers, td->perslen))
                 || !uninstantiate(drbg))
             goto err;
     }
 
     /* Test too large nonce */
     if (drbg->max_noncelen) {
+        if (!init(drbg, td, &t))
+            goto err;
         t.noncelen = drbg->max_noncelen + 1;
-        if (!init(drbg, td, &t)
-                || RAND_DRBG_instantiate(drbg, td->pers, td->perslen) > 0
+        if (!TEST_false(RAND_DRBG_instantiate(drbg, td->pers, td->perslen))
                 || !uninstantiate(drbg))
             goto err;
     }
@@ -414,7 +418,7 @@ static int error_check(DRBG_SELFTEST_DATA *td)
      * failure.
      */
     t.entropylen = 0;
-    if (TEST_false(RAND_DRBG_generate(drbg, buff, td->exlen, 1,
+    if (!TEST_false(RAND_DRBG_generate(drbg, buff, td->exlen, 1,
                                       td->adin, td->adinlen))
             || !uninstantiate(drbg))
         goto err;
@@ -423,7 +427,7 @@ static int error_check(DRBG_SELFTEST_DATA *td)
     if (!instantiate(drbg, td, &t))
         goto err;
     reseed_counter_tmp = drbg->reseed_gen_counter;
-    drbg->reseed_gen_counter = drbg->reseed_interval;
+    drbg->reseed_gen_counter = drbg->reseed_interval + 1;
 
     /* Generate output and check entropy has been requested for reseed */
     t.entropycnt = 0;
@@ -448,7 +452,7 @@ static int error_check(DRBG_SELFTEST_DATA *td)
     if (!instantiate(drbg, td, &t))
         goto err;
     reseed_counter_tmp = drbg->reseed_gen_counter;
-    drbg->reseed_gen_counter = drbg->reseed_interval;
+    drbg->reseed_gen_counter = drbg->reseed_interval + 1;
 
     /* Generate output and check entropy has been requested for reseed */
     t.entropycnt = 0;
@@ -465,12 +469,12 @@ static int error_check(DRBG_SELFTEST_DATA *td)
 
     /* Test explicit reseed with too large additional input */
     if (!instantiate(drbg, td, &t)
-            || RAND_DRBG_reseed(drbg, td->adin, drbg->max_adinlen + 1, 0) > 0)
+            || !TEST_false(RAND_DRBG_reseed(drbg, td->adin, drbg->max_adinlen + 1, 0)))
         goto err;
 
     /* Test explicit reseed with entropy source failure */
     t.entropylen = 0;
-    if (!TEST_int_le(RAND_DRBG_reseed(drbg, td->adin, td->adinlen, 0), 0)
+    if (!TEST_false(RAND_DRBG_reseed(drbg, td->adin, td->adinlen, 0))
             || !uninstantiate(drbg))
         goto err;
 
@@ -478,7 +482,7 @@ static int error_check(DRBG_SELFTEST_DATA *td)
     if (!instantiate(drbg, td, &t))
         goto err;
     t.entropylen = drbg->max_entropylen + 1;
-    if (!TEST_int_le(RAND_DRBG_reseed(drbg, td->adin, td->adinlen, 0), 0)
+    if (!TEST_false(RAND_DRBG_reseed(drbg, td->adin, td->adinlen, 0))
             || !uninstantiate(drbg))
         goto err;
 
@@ -486,11 +490,17 @@ static int error_check(DRBG_SELFTEST_DATA *td)
     if (!instantiate(drbg, td, &t))
         goto err;
     t.entropylen = drbg->min_entropylen - 1;
-    if (!TEST_int_le(RAND_DRBG_reseed(drbg, td->adin, td->adinlen, 0), 0)
+    if (!TEST_false(RAND_DRBG_reseed(drbg, td->adin, td->adinlen, 0))
             || !uninstantiate(drbg))
         goto err;
 
-    /* Standard says we have to check uninstantiate really zeroes */
+    /*
+     * Standard says we have to check uninstantiate really zeroes.
+     *
+     * RAND_DRBG_uninstantiate() OPENSSL_cleanses the data via drbg_ctr_uninstantiate().
+     * The test was broken on 1.1.1, where RAND_DRBG_uninstantiate() reset the
+     * drbg->data.ctr with RAND_DRBG_set() after the cleansing.
+     */
     if (!TEST_mem_eq(zero, sizeof(drbg->data), &drbg->data, sizeof(drbg->data)))
         goto err;
 
@@ -520,7 +530,7 @@ static int test_error_checks(int i)
     DRBG_SELFTEST_DATA *td = &drbg_test[i];
     int rv = 0;
 
-    if (error_check(td))
+    if (!error_check(td))
         goto err;
     rv = 1;
 
