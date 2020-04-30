@@ -65,6 +65,12 @@ struct evp_kdf_ctx_st {
     void *data;                 /* Algorithm-specific data */
 } /* EVP_KDF_CTX */ ;
 
+struct evp_rand_ctx_st {
+    EVP_RAND *meth;             /* Method structure */
+    void *data;                 /* Algorithm-specific data */
+    EVP_RAND_CTX *parent;
+} /* EVP_RAND_CTX */ ;
+
 struct evp_keymgmt_st {
     int id;                      /* libcrypto internal */
 
