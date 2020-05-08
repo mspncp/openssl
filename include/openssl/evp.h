@@ -1109,7 +1109,7 @@ int EVP_RAND_is_a(const EVP_RAND *rand, const char *name);
 const OSSL_PROVIDER *EVP_RAND_provider(const EVP_RAND *rand);
 int EVP_RAND_get_params(EVP_RAND *rand, OSSL_PARAM params[]);
 
-EVP_RAND_CTX *EVP_RAND_CTX_new(EVP_RAND *rand, int secure, unsigned int df,
+EVP_RAND_CTX *EVP_RAND_CTX_new(EVP_RAND *rand, int secure,
                                EVP_RAND_CTX *parent);
 void EVP_RAND_CTX_free(EVP_RAND_CTX *ctx);
 EVP_RAND *EVP_RAND_CTX_rand(EVP_RAND_CTX *ctx);
@@ -1134,6 +1134,7 @@ int EVP_RAND_CTX_generate(EVP_RAND_CTX *ctx, unsigned char *out, size_t outlen,
                           int strength, int prediction_resistance,
                           const unsigned char *addin, size_t addin_len);
 int EVP_RAND_CTX_reseed(EVP_RAND_CTX *ctx, int prediction_resistance,
+                        const unsigned char *ent, size_t ent_len,
                         const unsigned char *addin, size_t addin_len);
 int EVP_RAND_CTX_nonce(EVP_RAND_CTX *ctx, unsigned char *out, size_t outlen);
 int EVP_RAND_CTX_set_callbacks(const EVP_RAND_CTX *rand,

@@ -355,7 +355,7 @@ OSSL_CORE_MAKE_FUNC(int, OP_kdf_set_ctx_params,
 # define OSSL_FUNC_RAND_SET_CALLBACKS                17
 
 OSSL_CORE_MAKE_FUNC(void *, OP_rand_newctx,
-                    (void *provctx, int secure, unsigned int df, void *parent,
+                    (void *provctx, int secure, void *parent,
                     const OSSL_DISPATCH *parent_calls))
 OSSL_CORE_MAKE_FUNC(void, OP_rand_freectx, (void *vctx))
 OSSL_CORE_MAKE_FUNC(int, OP_rand_instantiate,
@@ -368,9 +368,11 @@ OSSL_CORE_MAKE_FUNC(int, OP_rand_generate,
                      const unsigned char *addin, size_t addin_len))
 OSSL_CORE_MAKE_FUNC(int, OP_rand_reseed,
                     (void *vctx, int prediction_resistance,
+                     const unsigned char *ent, size_t ent_len,
                      const unsigned char *addin, size_t addin_len))
-OSSL_CORE_MAKE_FUNC(int, OP_rand_nonce,
-                    (void *vctx, unsigned char *out, size_t outlen))
+OSSL_CORE_MAKE_FUNC(size_t, OP_rand_nonce,
+                    (void *vctx, unsigned char **out, int strength,
+                     size_t min_noncelen, size_t max_noncelen))
 OSSL_CORE_MAKE_FUNC(int, OP_rand_set_callbacks,
                     (void *vctx,
                      OSSL_CALLBACK *get_entropy, OSSL_CALLBACK *cleanup_entropy,

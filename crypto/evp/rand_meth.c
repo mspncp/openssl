@@ -236,8 +236,7 @@ int EVP_RAND_get_params(EVP_RAND *rand, OSSL_PARAM params[])
     return 1;
 }
 
-EVP_RAND_CTX *EVP_RAND_CTX_new(EVP_RAND *rand, int secure, unsigned int df,
-                               EVP_RAND_CTX *parent)
+EVP_RAND_CTX *EVP_RAND_CTX_new(EVP_RAND *rand, int secure, EVP_RAND_CTX *parent)
 {
     EVP_RAND_CTX *ctx;
     void *parent_ctx = NULL;
@@ -253,7 +252,7 @@ EVP_RAND_CTX *EVP_RAND_CTX_new(EVP_RAND *rand, int secure, unsigned int df,
         parent_ctx = parent->data;
         parent_dispatch = parent->meth->dispatch;
     }
-    if ((ctx->data = rand->newctx(ossl_provider_ctx(rand->prov), secure, df,
+    if ((ctx->data = rand->newctx(ossl_provider_ctx(rand->prov), secure,
                                   parent_ctx, parent_dispatch)) == NULL
             || !EVP_RAND_up_ref(rand)) {
         EVPerr(0, ERR_R_MALLOC_FAILURE);
@@ -355,30 +354,25 @@ int EVP_RAND_CTX_generate(EVP_RAND_CTX *ctx, unsigned char *out, size_t outlen,
 }
 
 int EVP_RAND_CTX_reseed(EVP_RAND_CTX *ctx, int prediction_resistance,
+                        const unsigned char *ent, size_t ent_len,
                         const unsigned char *addin, size_t addin_len)
 {
     if (ctx->meth->reseed == NULL)
         return 1;
     return ctx->meth->reseed(ctx->data, prediction_resistance,
-                             addin, addin_len);
+                             ent, ent_len, addin, addin_len);
 }
 
 int EVP_RAND_CTX_nonce(EVP_RAND_CTX *ctx, unsigned char *out, size_t outlen)
 {
-    if (ctx->meth->nonce != NULL)
-        return ctx->meth->nonce(ctx->data, out, outlen);
+    unsigned char *buf;
+
+    if (ctx->meth->nonce != NULL
+            && ctx->meth->nonce(ctx->data, &buf, 0, outlen, outlen)) {
+        memcpy(out, buf, outlen);
+        /* TODO(3.0): memory allocation disturbance */
+        OPENSSL_free(buf);
+        return 1;
+    }
     return ctx->meth->generate(ctx->data, out, outlen, 0, 0, NULL, 0);
 }
-
-int EVP_RAND_CTX_set_callbacks(const EVP_RAND_CTX *ctx,
-                               OSSL_CALLBACK *get_entropy,
-                               OSSL_CALLBACK *cleanup_entropy,
-                               OSSL_CALLBACK *get_nonce,
-                               OSSL_CALLBACK *cleanup_nonce)
-{
-    if (ctx->meth->set_callbacks == NULL)
-        return 0;
-    return ctx->meth->set_callbacks(ctx->data, get_entropy, cleanup_entropy,
-                                    get_nonce, cleanup_nonce);
-}
-
