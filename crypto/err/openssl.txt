@@ -1120,6 +1120,7 @@ PROV_F_AES_STREAM_UPDATE:111:aes_stream_update
 PROV_F_AES_T4_INIT_KEY:112:aes_t4_init_key
 PROV_F_BLAKE2_MAC_INIT:115:blake2_mac_init
 PROV_F_BLAKE2_MAC_SET_PARAMS:116:blake2_mac_set_params
+PROV_F_DRBG_CTR_INIT:120:
 PROV_F_GMAC_SET_PARAMS:117:gmac_set_params
 PROV_F_KMAC_SET_PARAMS:118:kmac_set_params
 PROV_F_POLY1305_SET_PARAMS:119:poly1305_set_params
@@ -2811,8 +2812,12 @@ PROV_R_BAD_TLS_CLIENT_VERSION:161:bad tls client version
 PROV_R_BN_ERROR:160:bn error
 PROV_R_BOTH_MODE_AND_MODE_INT:127:both mode and mode int
 PROV_R_CIPHER_OPERATION_FAILED:102:cipher operation failed
+PROV_R_DERIVATION_FUNCTION_MANDATORY_FOR_FIPS:178:\
+	derivation function mandatory for fips
 PROV_R_DIGEST_NOT_ALLOWED:174:digest not allowed
+PROV_R_DRBG_ALREADY_INITIALIZED:179:drbg already initialized
 PROV_R_FAILED_DURING_DERIVATION:164:failed during derivation
+PROV_R_FAILED_TO_CREATE_LOCK:180:failed to create lock
 PROV_R_FAILED_TO_DECRYPT:162:failed to decrypt
 PROV_R_FAILED_TO_GENERATE_KEY:121:failed to generate key
 PROV_R_FAILED_TO_GET_PARAMETER:103:failed to get parameter
@@ -2821,6 +2826,7 @@ PROV_R_FAILED_TO_SIGN:175:failed to sign
 PROV_R_ILLEGAL_OR_UNSUPPORTED_PADDING_MODE:165:\
 	illegal or unsupported padding mode
 PROV_R_INAVLID_UKM_LENGTH:146:inavlid ukm length
+PROV_R_INSUFFICIENT_DRBG_STRENGTH:181:insufficient drbg strength
 PROV_R_INVALID_AAD:108:invalid aad
 PROV_R_INVALID_CONSTANT_LENGTH:157:invalid constant length
 PROV_R_INVALID_CURVE:176:invalid curve
@@ -2865,6 +2871,7 @@ PROV_R_NOT_XOF_OR_INVALID_LENGTH:113:not xof or invalid length
 PROV_R_NO_KEY_SET:114:no key set
 PROV_R_NO_PARAMETERS_SET:177:no parameters set
 PROV_R_OUTPUT_BUFFER_TOO_SMALL:106:output buffer too small
+PROV_R_PARENT_LOCKING_NOT_ENABLED:182:parent locking not enabled
 PROV_R_PSS_SALTLEN_TOO_SMALL:172:pss saltlen too small
 PROV_R_READ_KEY:159:read key
 PROV_R_TAG_NOTSET:119:tag notset
@@ -2901,6 +2908,7 @@ RAND_R_FAILED_TO_CREATE_LOCK:126:failed to create lock
 RAND_R_FUNC_NOT_IMPLEMENTED:101:Function not implemented
 RAND_R_FWRITE_ERROR:123:Error writing file
 RAND_R_GENERATE_ERROR:112:generate error
+RAND_R_INSUFFICIENT_DRBG_STRENGTH:139:insufficient drbg strength
 RAND_R_INTERNAL_ERROR:113:internal error
 RAND_R_IN_ERROR_STATE:114:in error state
 RAND_R_NOT_A_REGULAR_FILE:122:Not a regular file
@@ -2919,6 +2927,11 @@ RAND_R_RESEED_ERROR:118:reseed error
 RAND_R_SELFTEST_FAILURE:119:selftest failure
 RAND_R_TOO_LITTLE_NONCE_REQUESTED:135:too little nonce requested
 RAND_R_TOO_MUCH_NONCE_REQUESTED:136:too much nonce requested
+RAND_R_UNABLE_TO_GET_PARENT_RESEED_PROP_COUNTER:141:\
+	unable to get parent reseed prop counter
+RAND_R_UNABLE_TO_GET_PARENT_STRENGTH:138:unable to get parent strength
+RAND_R_UNABLE_TO_GET_RESEED_PROP_CTR:142:unable to get reseed prop ctr
+RAND_R_UNABLE_TO_LOCK_PARENT:140:unable to lock parent
 RAND_R_UNSUPPORTED_DRBG_FLAGS:132:unsupported drbg flags
 RAND_R_UNSUPPORTED_DRBG_TYPE:120:unsupported drbg type
 RSA_R_ALGORITHM_MISMATCH:100:algorithm mismatch

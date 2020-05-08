@@ -10,6 +10,7 @@
 
 #ifndef OPENSSL_PROVERR_H
 # define OPENSSL_PROVERR_H
+# pragma once
 
 # include <openssl/opensslconf.h>
 # include <openssl/symhacks.h>
@@ -38,6 +39,7 @@ int ERR_load_PROV_strings(void);
 #  define PROV_F_AES_T4_INIT_KEY                           0
 #  define PROV_F_BLAKE2_MAC_INIT                           0
 #  define PROV_F_BLAKE2_MAC_SET_PARAMS                     0
+#  define PROV_F_DRBG_CTR_INIT                             0
 #  define PROV_F_GMAC_SET_PARAMS                           0
 #  define PROV_F_KMAC_SET_PARAMS                           0
 #  define PROV_F_POLY1305_SET_PARAMS                       0
@@ -58,8 +60,11 @@ int ERR_load_PROV_strings(void);
 # define PROV_R_BN_ERROR                                  160
 # define PROV_R_BOTH_MODE_AND_MODE_INT                    127
 # define PROV_R_CIPHER_OPERATION_FAILED                   102
+# define PROV_R_DERIVATION_FUNCTION_MANDATORY_FOR_FIPS    178
 # define PROV_R_DIGEST_NOT_ALLOWED                        174
+# define PROV_R_DRBG_ALREADY_INITIALIZED                  179
 # define PROV_R_FAILED_DURING_DERIVATION                  164
+# define PROV_R_FAILED_TO_CREATE_LOCK                     180
 # define PROV_R_FAILED_TO_DECRYPT                         162
 # define PROV_R_FAILED_TO_GENERATE_KEY                    121
 # define PROV_R_FAILED_TO_GET_PARAMETER                   103
@@ -67,6 +72,7 @@ int ERR_load_PROV_strings(void);
 # define PROV_R_FAILED_TO_SIGN                            175
 # define PROV_R_ILLEGAL_OR_UNSUPPORTED_PADDING_MODE       165
 # define PROV_R_INAVLID_UKM_LENGTH                        146
+# define PROV_R_INSUFFICIENT_DRBG_STRENGTH                181
 # define PROV_R_INVALID_AAD                               108
 # define PROV_R_INVALID_CONSTANT_LENGTH                   157
 # define PROV_R_INVALID_CURVE                             176
@@ -111,6 +117,7 @@ int ERR_load_PROV_strings(void);
 # define PROV_R_NO_KEY_SET                                114
 # define PROV_R_NO_PARAMETERS_SET                         177
 # define PROV_R_OUTPUT_BUFFER_TOO_SMALL                   106
+# define PROV_R_PARENT_LOCKING_NOT_ENABLED                182
 # define PROV_R_PSS_SALTLEN_TOO_SMALL                     172
 # define PROV_R_READ_KEY                                  159
 # define PROV_R_TAG_NOTSET                                119
