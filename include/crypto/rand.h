@@ -95,42 +95,6 @@ size_t rand_drbg_get_additional_data(RAND_POOL *pool, unsigned char **pout);
 
 void rand_drbg_cleanup_additional_data(RAND_POOL *pool, unsigned char *out);
 
-/* CRNG test entropy filter callbacks. */
-size_t rand_crngt_get_entropy(RAND_DRBG *drbg,
-                              unsigned char **pout,
-                              int entropy, size_t min_len, size_t max_len,
-                              int prediction_resistance);
-void rand_crngt_cleanup_entropy(RAND_DRBG *drbg,
-                                unsigned char *out, size_t outlen);
-
-/*
- * RAND_POOL functions
- */
-RAND_POOL *rand_pool_new(int entropy_requested, int secure,
-                         size_t min_len, size_t max_len);
-RAND_POOL *rand_pool_attach(const unsigned char *buffer, size_t len,
-                            size_t entropy);
-void rand_pool_free(RAND_POOL *pool);
-
-const unsigned char *rand_pool_buffer(RAND_POOL *pool);
-unsigned char *rand_pool_detach(RAND_POOL *pool);
-void rand_pool_reattach(RAND_POOL *pool, unsigned char *buffer);
-
-size_t rand_pool_entropy(RAND_POOL *pool);
-size_t rand_pool_length(RAND_POOL *pool);
-
-size_t rand_pool_entropy_available(RAND_POOL *pool);
-size_t rand_pool_entropy_needed(RAND_POOL *pool);
-/* |entropy_factor| expresses how many bits of data contain 1 bit of entropy */
-size_t rand_pool_bytes_needed(RAND_POOL *pool, unsigned int entropy_factor);
-size_t rand_pool_bytes_remaining(RAND_POOL *pool);
-
-int rand_pool_add(RAND_POOL *pool,
-                  const unsigned char *buffer, size_t len, size_t entropy);
-unsigned char *rand_pool_add_begin(RAND_POOL *pool, size_t len);
-int rand_pool_add_end(RAND_POOL *pool, size_t len, size_t entropy);
-
-
 /*
  * Add random bytes to the pool to acquire requested amount of entropy
  *
