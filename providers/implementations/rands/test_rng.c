@@ -63,7 +63,7 @@ static void test_rng_free(void *vdrbg)
     OPENSSL_free(hash->entropy);
     OPENSSL_free(hash->nonce);
     OPENSSL_free(drbg->data);
-    prov_rand_free(drbg);
+    prov_rand_drbg_free(drbg);
 }
 
 static int test_rng_instantiate(PROV_DRBG *drbg,
