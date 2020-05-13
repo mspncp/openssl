@@ -69,39 +69,7 @@ typedef enum drbg_status_e {
 } DRBG_STATUS;
 
 /*
- * The DRBG methods
- */
-
-typedef struct rand_drbg_hmac_st {
-    EVP_MD *md;
-    HMAC_CTX *ctx;
-    size_t blocklen;
-    unsigned char K[EVP_MAX_MD_SIZE];
-    unsigned char V[EVP_MAX_MD_SIZE];
-} PROV_DRBG_HMAC;
-
-/*
- * The state of a DRBG AES-CTR.
- */
-typedef struct rand_drbg_ctr_st {
-    EVP_CIPHER_CTX *ctx_ecb;
-    EVP_CIPHER_CTX *ctx_ctr;
-    EVP_CIPHER_CTX *ctx_df;
-    EVP_CIPHER *cipher_ecb;
-    EVP_CIPHER *cipher_ctr;
-    size_t keylen;
-    unsigned char K[32];
-    unsigned char V[16];
-    /* Temporary block storage used by ctr_df */
-    unsigned char bltmp[16];
-    size_t bltmp_pos;
-    unsigned char KX[48];
-} PROV_DRBG_CTR;
-
-
-/*
- * The state of all types of DRBGs, even though we only have CTR mode
- * right now.
+ * The state of all types of DRBGs.
  */
 struct prov_drbg_st {
     CRYPTO_RWLOCK *lock;
@@ -210,7 +178,7 @@ size_t rand_drbg_seedlen(PROV_DRBG *drbg);
 PROV_DRBG *prov_rand_drbg_new(void *provctx, int secure, void *parent,
                               const OSSL_DISPATCH *parent_dispatch,
                               int (*dnew)(PROV_DRBG *ctx, int secure));
-void prov_rand_free(PROV_DRBG *drbg);
+void prov_rand_drbg_free(PROV_DRBG *drbg);
 
 int PROV_DRBG_instantiate(PROV_DRBG *drbg, int strength,
                           int prediction_resistance,

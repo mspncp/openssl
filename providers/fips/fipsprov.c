@@ -438,11 +438,10 @@ static const OSSL_ALGORITHM fips_rands[] = {
      */
     { "TEST-RAND", "provider=fips", test_rng_functions },
     { "HASH-DRBG", "provider=fips", drbg_hash_functions },
-/*
     { "HMAC-DRBG", "provider=fips", drbg_hmac_functions },
+/*
     { "CTR-DRBG", "provider=fips", drbg_ctr_functions },
 */
-    { "CRNGT:continuous-rng-test", "provider=fips", crngt_functions },
     { NULL, NULL, NULL }
 };
 
