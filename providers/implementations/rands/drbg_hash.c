@@ -406,7 +406,7 @@ static void drbg_hash_free(void *vdrbg)
         OPENSSL_secure_clear_free(hash, sizeof(*hash));
     else
         OPENSSL_clear_free(hash, sizeof(*hash));
-    prov_rand_free(drbg);
+    prov_rand_drbg_free(drbg);
 }
 
 static int drbg_hash_get_ctx_params(void *vdrbg, OSSL_PARAM params[])
