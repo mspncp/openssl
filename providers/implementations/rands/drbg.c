@@ -794,8 +794,20 @@ PROV_DRBG *prov_rand_drbg_new(void *provctx, int secure, void *parent,
     return drbg;
 
  err:
-    prov_rand_free(drbg);
+    prov_rand_drbg_free(drbg);
     return NULL;
+}
+
+void prov_rand_drbg_free(PROV_DRBG *drbg)
+{
+    if (drbg == NULL)
+        return;
+
+    rand_pool_free(drbg->adin_pool);
+    CRYPTO_THREAD_lock_free(drbg->lock);
+#ifndef FIPS_MODULE
+    CRYPTO_free_ex_data(CRYPTO_EX_INDEX_RAND_DRBG, drbg, &drbg->ex_data);
+#endif
 }
 
 int drbg_get_ctx_params(PROV_DRBG *drbg, OSSL_PARAM params[])
