@@ -185,6 +185,7 @@ extern "C" {
 #define OSSL_RAND_PARAM_DIGEST                  OSSL_ALG_PARAM_DIGEST
 #define OSSL_RAND_PARAM_CIPHER                  OSSL_ALG_PARAM_CIPHER
 #define OSSL_RAND_PARAM_MAC                     OSSL_ALG_PARAM_MAC
+#define OSSL_RAND_PARAM_USE_DF                  "derivation_function"
 #define OSSL_RAND_PARAM_TEST_ENTROPY            "test_entropy"
 #define OSSL_RAND_PARAM_TEST_NONCE              "test_nonce"
 
