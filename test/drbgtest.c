@@ -427,7 +427,7 @@ static int error_check(DRBG_SELFTEST_DATA *td)
     if (!instantiate(drbg, td, &t))
         goto err;
     reseed_counter_tmp = drbg->reseed_gen_counter;
-    drbg->reseed_gen_counter = drbg->reseed_interval + 1;
+    drbg->reseed_gen_counter = drbg->reseed_interval;
 
     /* Generate output and check entropy has been requested for reseed */
     t.entropycnt = 0;
@@ -452,7 +452,7 @@ static int error_check(DRBG_SELFTEST_DATA *td)
     if (!instantiate(drbg, td, &t))
         goto err;
     reseed_counter_tmp = drbg->reseed_gen_counter;
-    drbg->reseed_gen_counter = drbg->reseed_interval + 1;
+    drbg->reseed_gen_counter = drbg->reseed_interval;
 
     /* Generate output and check entropy has been requested for reseed */
     t.entropycnt = 0;
