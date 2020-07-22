@@ -680,9 +680,9 @@ static int test_drbg_reseed(int expect_success,
 
     /* Generate random output from the public and private DRBG */
     before_reseed = expect_master_reseed == 1 ? reseed_when : 0;
-    if (!TEST_int_eq(RAND_bytes((unsigned char*)private_random,
+    if (!TEST_int_eq(RAND_bytes((unsigned char*)public_random,
                                 RANDOM_SIZE), expect_success)
-        || !TEST_int_eq(RAND_priv_bytes((unsigned char*) public_random,
+        || !TEST_int_eq(RAND_priv_bytes((unsigned char*) private_random,
                                         RANDOM_SIZE), expect_success))
         return 0;
     after_reseed = time(NULL);
@@ -764,8 +764,8 @@ static int compare_drbg_fork_result(const void * left, const void * right)
 {
     int result;
 
-    const drbg_fork_result * l = left;
-    const drbg_fork_result * r = right;
+    const drbg_fork_result *l = left;
+    const drbg_fork_result *r = right;
 
     result = memcmp(l->random, r->random, RANDOM_SIZE);
 
@@ -777,19 +777,6 @@ static int compare_drbg_fork_result(const void * left, const void * right)
     }
 
     return result;
-}
-
-/* print random data hexadecimal into buffer */
-const char* rand_hex(const unsigned char *rand)
-{
-    static char buffer[2*RANDOM_SIZE+1];
-    char *p = buffer;
-    size_t size;
-        
-    for (size = 0 ; size < RANDOM_SIZE ; ++size, ++rand, p += 2)
-        sprintf(p, "%02x", *rand);
-
-    return buffer;
 }
 
 /*
@@ -806,7 +793,7 @@ static int test_drbg_reseed_in_child(RAND_DRBG *master,
     int rv = 0, status;
     int fd[2];
     pid_t pid;
-    unsigned char random[2*RANDOM_SIZE];
+    unsigned char random[2 * RANDOM_SIZE];
 
     if (!TEST_int_ge(pipe(fd), 0))
         return 0;
@@ -876,10 +863,7 @@ static int test_rand_drbg_reseed_on_fork(RAND_DRBG *master,
     pid_t pid = getpid();
 
     int duplicate = 0;
-
-    unsigned char random[2*RANDOM_SIZE];
-
-
+    unsigned char random[2 * RANDOM_SIZE];
     drbg_fork_result result[DRBG_FORK_RESULT_COUNT];
     drbg_fork_result sorted[DRBG_FORK_RESULT_COUNT];
     drbg_fork_result *presult = &result[2];
@@ -930,7 +914,7 @@ static int test_rand_drbg_reseed_on_fork(RAND_DRBG *master,
           compare_drbg_fork_result);
 
     /* ...and search for duplicates in the first random byte */
-    for (i=1 ; i < DRBG_FORK_RESULT_COUNT ; ++i) {
+    for (i = 1 ; i < DRBG_FORK_RESULT_COUNT ; ++i) {
         if (sorted[i].random[0] == sorted[i-1].random[0]) {
             ++duplicate;
         }
@@ -940,13 +924,17 @@ static int test_rand_drbg_reseed_on_fork(RAND_DRBG *master,
         /* just too many duplicates to be a coincidence */
         TEST_note("ERROR: duplicate random output:");
 
-        for (i=0 ; i < DRBG_FORK_RESULT_COUNT ; ++i) {
+        for (i = 0 ; i < DRBG_FORK_RESULT_COUNT ; ++i) {
+            char *rand_hex = OPENSSL_buf2hexstr(sorted[i].random, RANDOM_SIZE);
+
             TEST_note("    random: %s, pid: %d (%s, %s)",
-                      rand_hex(sorted[i].random),
+                      rand_hex,
                       sorted[i].pid,
                       sorted[i].name,
                       sorted[i].private ? "private" : "public"
                       );
+
+            OPENSSL_free(rand_hex);
         }
 
         return 0;
