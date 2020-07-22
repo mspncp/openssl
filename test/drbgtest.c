@@ -742,7 +742,7 @@ static int test_drbg_reseed(int expect_success,
 /* number of children to fork */
 #define DRBG_FORK_COUNT 8
 /* two results per child, two for the parent */
-#define DRBG_FORK_RESULT_COUNT 2 * (DRBG_FORK_COUNT + 1)
+#define DRBG_FORK_RESULT_COUNT (2 * (DRBG_FORK_COUNT + 1))
 
 typedef struct drbg_fork_result_st {
 
@@ -865,7 +865,6 @@ static int test_rand_drbg_reseed_on_fork(RAND_DRBG *master,
     int duplicate = 0;
     unsigned char random[2 * RANDOM_SIZE];
     drbg_fork_result result[DRBG_FORK_RESULT_COUNT];
-    drbg_fork_result sorted[DRBG_FORK_RESULT_COUNT];
     drbg_fork_result *presult = &result[2];
 
     memset(&result,  0, sizeof(result));
@@ -908,14 +907,13 @@ static int test_rand_drbg_reseed_on_fork(RAND_DRBG *master,
     result[1].private = 1;
     memcpy(result[1].random, &random[RANDOM_SIZE], RANDOM_SIZE);
 
-    /* sort the entries... */
-    memcpy(sorted, result, sizeof(sorted));
-    qsort(sorted, DRBG_FORK_RESULT_COUNT, sizeof(drbg_fork_result),
+    /* sort the results... */
+    qsort(result, DRBG_FORK_RESULT_COUNT, sizeof(drbg_fork_result),
           compare_drbg_fork_result);
 
     /* ...and search for duplicates in the first random byte */
     for (i = 1 ; i < DRBG_FORK_RESULT_COUNT ; ++i) {
-        if (sorted[i].random[0] == sorted[i-1].random[0]) {
+        if (result[i].random[0] == result[i-1].random[0]) {
             ++duplicate;
         }
     }
@@ -929,13 +927,13 @@ static int test_rand_drbg_reseed_on_fork(RAND_DRBG *master,
     if (verbose || !success) {
 
         for (i = 0 ; i < DRBG_FORK_RESULT_COUNT ; ++i) {
-            char *rand_hex = OPENSSL_buf2hexstr(sorted[i].random, RANDOM_SIZE);
+            char *rand_hex = OPENSSL_buf2hexstr(result[i].random, RANDOM_SIZE);
 
             TEST_note("    random: %s, pid: %d (%s, %s)",
                       rand_hex,
-                      sorted[i].pid,
-                      sorted[i].name,
-                      sorted[i].private ? "private" : "public"
+                      result[i].pid,
+                      result[i].name,
+                      result[i].private ? "private" : "public"
                       );
 
             OPENSSL_free(rand_hex);
