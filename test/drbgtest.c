@@ -780,6 +780,16 @@ static int compare_drbg_fork_result(const void * left, const void * right)
 }
 
 /*
+ * Sort two-byte chunks of random data
+ *
+ * Used for finding collisions in two-byte chunks
+ */
+static int compare_rand_chunk(const void * left, const void * right)
+{
+    return memcmp(left, right, 2);
+}
+
+/*
  * Test whether master, public and private DRBG are reseeded
  * in the child after forking the process. Collect the random
  * output of the public and private DRBG and send it back to
@@ -864,6 +874,8 @@ static int test_rand_drbg_reseed_on_fork(RAND_DRBG *master,
     int success = 1;
     int duplicate = 0;
     unsigned char random[2 * RANDOM_SIZE];
+    unsigned char sample[DRBG_FORK_RESULT_COUNT * RANDOM_SIZE];
+    unsigned char *psample = &sample[0];
     drbg_fork_result result[DRBG_FORK_RESULT_COUNT];
     drbg_fork_result *presult = &result[2];
 
@@ -907,11 +919,17 @@ static int test_rand_drbg_reseed_on_fork(RAND_DRBG *master,
     result[1].private = 1;
     memcpy(result[1].random, &random[RANDOM_SIZE], RANDOM_SIZE);
 
+    /* collect all sampled random data in a single buffer */
+    for (i = 0 ; i < DRBG_FORK_RESULT_COUNT ; ++i) {
+        memcpy(psample, &result[i].random[0], RANDOM_SIZE);
+        psample += RANDOM_SIZE;
+    }
+
     /* sort the results... */
     qsort(result, DRBG_FORK_RESULT_COUNT, sizeof(drbg_fork_result),
           compare_drbg_fork_result);
 
-    /* ...and search for duplicates in the first random byte */
+    /* ...and count duplicate prefixes by looking at the first byte only */
     for (i = 1 ; i < DRBG_FORK_RESULT_COUNT ; ++i) {
         if (result[i].random[0] == result[i-1].random[0]) {
             ++duplicate;
@@ -920,7 +938,23 @@ static int test_rand_drbg_reseed_on_fork(RAND_DRBG *master,
 
     if (duplicate >= DRBG_FORK_COUNT) {
         /* just too many duplicates to be a coincidence */
-        TEST_note("ERROR: duplicate random output:");
+        TEST_note("ERROR: %d duplicate prefixes in random output", duplicate);
+        success = 0;
+    }
+    duplicate = 0;
+
+    /* sort the two-byte chunks... */
+    qsort(sample, sizeof(sample)/2, 2, compare_rand_chunk);
+
+    /* ...and count duplicate chunks */
+    for (i = 2, psample = sample + 2 ; i < sizeof(sample) ; i+=2, psample += 2) {
+        if (compare_rand_chunk(psample - 2, psample) == 0)
+            ++duplicate;
+    }
+
+    if (duplicate >= DRBG_FORK_COUNT) {
+        /* just too many duplicates to be a coincidence */
+        TEST_note("ERROR: %d duplicate chunks in random output", duplicate);
         success = 0;
     }
 
