@@ -137,7 +137,7 @@ static DRBG_SELFTEST_DATA drbg_test[] = {
 
 
 /* size of random output generated in test_drbg_reseed() */
-#define RANDOM_SIZE 4
+#define RANDOM_SIZE 16
 
 /*
  * DRBG query functions
@@ -857,11 +857,11 @@ static int test_drbg_reseed_in_child(RAND_DRBG *master,
 static int test_rand_drbg_reseed_on_fork(RAND_DRBG *master,
                                          RAND_DRBG *public,
                                          RAND_DRBG *private)
-
 {
     int i;
     pid_t pid = getpid();
-
+    int verbose = (getenv("V") != NULL);
+    int success = 1;
     int duplicate = 0;
     unsigned char random[2 * RANDOM_SIZE];
     drbg_fork_result result[DRBG_FORK_RESULT_COUNT];
@@ -920,9 +920,13 @@ static int test_rand_drbg_reseed_on_fork(RAND_DRBG *master,
         }
     }
 
-    if (duplicate > DRBG_FORK_COUNT) {
+    if (duplicate >= DRBG_FORK_COUNT) {
         /* just too many duplicates to be a coincidence */
         TEST_note("ERROR: duplicate random output:");
+        success = 0;
+    }
+
+    if (verbose || !success) {
 
         for (i = 0 ; i < DRBG_FORK_RESULT_COUNT ; ++i) {
             char *rand_hex = OPENSSL_buf2hexstr(sorted[i].random, RANDOM_SIZE);
@@ -936,13 +940,33 @@ static int test_rand_drbg_reseed_on_fork(RAND_DRBG *master,
 
             OPENSSL_free(rand_hex);
         }
-
-        return 0;
     }
 
-    return 1;
+    return success;
 }
 
+static int test_rand_drbg_fork_safety(int i)
+{
+    int success = 1;
+    unsigned char random[1];
+    RAND_DRBG *master, *public, *private;
+
+    /* All three DRBGs should be non-null */
+    if (!TEST_ptr(master = RAND_DRBG_get0_master())
+        || !TEST_ptr(public = RAND_DRBG_get0_public())
+        || !TEST_ptr(private = RAND_DRBG_get0_private()))
+        return 0;
+
+    /* run the actual test */
+    if (!TEST_true(test_rand_drbg_reseed_on_fork(master, public, private)))
+        success = 0;
+
+    /* request a single byte from each of the DRBGs before the next run */
+    if (!TEST_true(RAND_bytes(random, 1) && RAND_priv_bytes(random, 1)))
+        success = 0;
+
+    return success;
+}
 #endif
 
 /*
@@ -1041,11 +1065,6 @@ static int test_rand_drbg_reseed(void)
                                     NULL, NULL,
                                     0, 0, 1, 0)))
         goto error;
-
-#if defined(OPENSSL_SYS_UNIX)
-    if (!TEST_true(test_rand_drbg_reseed_on_fork(master, public, private)))
-        goto error;
-#endif
 
     /* fill 'randomness' buffer with some arbitrary data */
     memset(rand_add_buf, 'r', sizeof(rand_add_buf));
@@ -1466,6 +1485,9 @@ int setup_tests(void)
     ADD_ALL_TESTS(test_kats, 1);
     ADD_ALL_TESTS(test_error_checks, OSSL_NELEM(drbg_test));
     ADD_TEST(test_rand_drbg_reseed);
+#if defined(OPENSSL_SYS_UNIX)
+    ADD_ALL_TESTS(test_rand_drbg_fork_safety, RANDOM_SIZE);
+#endif
     ADD_TEST(test_rand_drbg_prediction_resistance);
     ADD_TEST(test_multi_set);
     ADD_TEST(test_set_defaults);
