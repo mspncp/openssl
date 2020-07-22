@@ -742,7 +742,7 @@ static int test_drbg_reseed(int expect_success,
 /* number of children to fork */
 #define DRBG_FORK_COUNT 8
 /* two results per child, two for the parent */
-#define DRBG_FORK_RESULT_COUNT 2*(DRBG_FORK_COUNT + 1)
+#define DRBG_FORK_RESULT_COUNT 2 * (DRBG_FORK_COUNT + 1)
 
 typedef struct drbg_fork_result_st {
 
