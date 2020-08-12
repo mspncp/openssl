@@ -112,7 +112,7 @@ static void *alloc_tmp_deserializer_store(OSSL_LIB_CTX *ctx)
 static OSSL_METHOD_STORE *get_deserializer_store(OSSL_LIB_CTX *libctx)
 {
     return ossl_lib_ctx_get_data(libctx, OSSL_LIB_CTX_DESERIALIZER_STORE_INDEX,
-                                &deserializer_store_method);
+                                 &deserializer_store_method);
 }
 
 /* Get deserializer methods from a store, or put one in */

@@ -653,7 +653,7 @@ int OSSL_provider_init(const OSSL_CORE_HANDLE *handle,
     PROV_CTX_set0_handle(*provctx, handle);
 
     if ((fgbl = ossl_lib_ctx_get_data(libctx, OSSL_LIB_CTX_FIPS_PROV_INDEX,
-                                     &fips_prov_ossl_ctx_method)) == NULL)
+                                      &fips_prov_ossl_ctx_method)) == NULL)
         goto err;
 
     fgbl->handle = handle;
@@ -768,8 +768,8 @@ int ERR_pop_to_mark(void)
 const OSSL_CORE_HANDLE *FIPS_get_core_handle(OSSL_LIB_CTX *libctx)
 {
     FIPS_GLOBAL *fgbl = ossl_lib_ctx_get_data(libctx,
-                                             OSSL_LIB_CTX_FIPS_PROV_INDEX,
-                                             &fips_prov_ossl_ctx_method);
+                                              OSSL_LIB_CTX_FIPS_PROV_INDEX,
+                                              &fips_prov_ossl_ctx_method);
 
     if (fgbl == NULL)
         return NULL;

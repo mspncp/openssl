@@ -110,7 +110,7 @@ static void *alloc_tmp_serializer_store(OSSL_LIB_CTX *ctx)
 static OSSL_METHOD_STORE *get_serializer_store(OSSL_LIB_CTX *libctx)
 {
     return ossl_lib_ctx_get_data(libctx, OSSL_LIB_CTX_SERIALIZER_STORE_INDEX,
-                                &serializer_store_method);
+                                 &serializer_store_method);
 }
 
 /* Get serializer methods from a store, or put one in */

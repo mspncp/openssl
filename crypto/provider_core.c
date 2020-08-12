@@ -189,7 +189,7 @@ static struct provider_store_st *get_provider_store(OSSL_LIB_CTX *libctx)
     struct provider_store_st *store = NULL;
 
     store = ossl_lib_ctx_get_data(libctx, OSSL_LIB_CTX_PROVIDER_STORE_INDEX,
-                                 &provider_store_method);
+                                  &provider_store_method);
     if (store == NULL)
         CRYPTOerr(CRYPTO_F_GET_PROVIDER_STORE, ERR_R_INTERNAL_ERROR);
     return store;

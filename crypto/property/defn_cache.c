@@ -72,7 +72,7 @@ OSSL_PROPERTY_LIST *ossl_prop_defn_get(OSSL_LIB_CTX *ctx, const char *prop)
     LHASH_OF(PROPERTY_DEFN_ELEM) *property_defns;
 
     property_defns = ossl_lib_ctx_get_data(ctx, OSSL_LIB_CTX_PROPERTY_DEFN_INDEX,
-                                          &property_defns_method);
+                                           &property_defns_method);
     if (property_defns == NULL)
         return NULL;
 
@@ -89,7 +89,7 @@ int ossl_prop_defn_set(OSSL_LIB_CTX *ctx, const char *prop,
     LHASH_OF(PROPERTY_DEFN_ELEM) *property_defns;
 
     property_defns = ossl_lib_ctx_get_data(ctx, OSSL_LIB_CTX_PROPERTY_DEFN_INDEX,
-                                          &property_defns_method);
+                                           &property_defns_method);
     if (property_defns == NULL)
         return 0;
 
