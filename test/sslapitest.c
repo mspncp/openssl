@@ -51,7 +51,7 @@ DEFINE_STACK_OF(OCSP_RESPID)
 DEFINE_STACK_OF(X509)
 DEFINE_STACK_OF(X509_NAME)
 
-static OPENSSL_CTX *libctx = NULL;
+static OSSL_LIB_CTX *libctx = NULL;
 static OSSL_PROVIDER *defctxnull = NULL;
 
 #ifndef OPENSSL_NO_TLS1_3
@@ -6874,7 +6874,7 @@ static int int_test_ssl_get_shared_ciphers(int tst, int clnt)
     SSL *clientssl = NULL, *serverssl = NULL;
     int testresult = 0;
     char buf[1024];
-    OPENSSL_CTX *tmplibctx = OPENSSL_CTX_new();
+    OSSL_LIB_CTX *tmplibctx = OSSL_LIB_CTX_new();
 
     if (!TEST_ptr(tmplibctx))
         goto end;
@@ -6939,7 +6939,7 @@ static int int_test_ssl_get_shared_ciphers(int tst, int clnt)
     SSL_free(clientssl);
     SSL_CTX_free(sctx);
     SSL_CTX_free(cctx);
-    OPENSSL_CTX_free(tmplibctx);
+    OSSL_LIB_CTX_free(tmplibctx);
 
     return testresult;
 }
@@ -8130,8 +8130,8 @@ static int test_sigalgs_available(int idx)
     SSL_CTX *cctx = NULL, *sctx = NULL;
     SSL *clientssl = NULL, *serverssl = NULL;
     int testresult = 0;
-    OPENSSL_CTX *tmpctx = OPENSSL_CTX_new();
-    OPENSSL_CTX *clientctx = libctx, *serverctx = libctx;
+    OSSL_LIB_CTX *tmpctx = OSSL_LIB_CTX_new();
+    OSSL_LIB_CTX *clientctx = libctx, *serverctx = libctx;
     OSSL_PROVIDER *filterprov = NULL;
     int sig, hash;
 
@@ -8234,7 +8234,7 @@ static int test_sigalgs_available(int idx)
     SSL_CTX_free(sctx);
     SSL_CTX_free(cctx);
     OSSL_PROVIDER_unload(filterprov);
-    OPENSSL_CTX_free(tmpctx);
+    OSSL_LIB_CTX_free(tmpctx);
 
     return testresult;
 }
@@ -8359,7 +8359,7 @@ int setup_tests(void)
     char *modulename;
     char *configfile;
 
-    libctx = OPENSSL_CTX_new();
+    libctx = OSSL_LIB_CTX_new();
     if (!TEST_ptr(libctx))
         return 0;
 
@@ -8385,7 +8385,7 @@ int setup_tests(void)
             || !TEST_ptr(configfile = test_get_argument(4)))
         return 0;
 
-    if (!TEST_true(OPENSSL_CTX_load_config(libctx, configfile)))
+    if (!TEST_true(OSSL_LIB_CTX_load_config(libctx, configfile)))
         return 0;
 
     /* Check we have the expected provider available */
@@ -8577,5 +8577,5 @@ void cleanup_tests(void)
     bio_s_mempacket_test_free();
     bio_s_always_retry_free();
     OSSL_PROVIDER_unload(defctxnull);
-    OPENSSL_CTX_free(libctx);
+    OSSL_LIB_CTX_free(libctx);
 }
