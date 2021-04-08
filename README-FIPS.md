@@ -18,7 +18,7 @@ installation of OpenSSL 3.0 the default location for this file is
 `C:\Program Files\OpenSSL\lib\ossl-modules\fips.dll` on Windows.
 
 To complete the installation you need to run the `fipsinstall` command line
-application. This does 2 things:
+application. This does two things:
 
 - Runs the FIPS module self tests
 - Generates FIPS module config file output containing information about the
@@ -28,12 +28,21 @@ The FIPS module must have the self tests run, and the FIPS module config file
 output generated on every machine that it is to be used on. You must not copy
 the FIPS module config file output data from one machine to another.
 
-For example, to install the FIPS module to its default location on Unix:
+There is a make target called 'install_fips' for installing the FIPS module
+to its default location. To be precise, it is not the FIPS module which gets
+installed, it's the FIPS provider module configuration file.
+
+For example, on Unix the command
+
+    $ make install_fips
+
+will install the FIPS module to its default location by executing the command
 
     $ openssl fipsinstall -out /usr/local/ssl/fipsmodule.cnf -module /usr/local/lib/ossl-modules/fips.so
 
-If you installed OpenSSL to a different location, you need to adjust the output
-and module path accordingly.
+If you configured OpenSSL to be installed to a different location, the paths will
+vary accordingly. In the rare case that you need to install the fipsmodule.cnf
+to non-standard location, you can execute the `openssl fipsinstall` command manually.
 
 
 Using the FIPS Module in applications
