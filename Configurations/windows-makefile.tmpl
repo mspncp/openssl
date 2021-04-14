@@ -478,7 +478,7 @@ install_docs: install_html_docs
 
 uninstall_docs: uninstall_html_docs
 
-install_fips:
+install_fips: build_sw providers\fipsmodule.cnf
 #	@[ -n "$(INSTALLTOP)" ] || (echo INSTALLTOP should not be empty; exit 1)
 	@$(PERL) $(SRCDIR)\util\mkdir-p.pl $(MODULESDIR)
 	@$(ECHO) "*** Installing FIPS module"
@@ -487,11 +487,8 @@ install_fips:
 	@move /Y $(MODULESDIR)\$(FIPSMODULENAME).new \
 	       $(MODULESDIR)\$(FIPSMODULENAME)
 	@$(ECHO) "*** Installing FIPS module configuration"
-	@$(ECHO) "fipsinstall $(OPENSSLDIR)\fipsmodule.cnf"
-	@$(PERL) "$(BLDDIR)\util\wrap.pl" "$(BLDDIR)\apps\openssl" fipsinstall \
-		-module "$(MODULESDIR)\$(FIPSMODULENAME)" \
-		-out "$(OPENSSLDIR)\fipsmodule.cnf" \
-		-macopt "hexkey:$(FIPSKEY)"
+	@$(ECHO) "install providers\fipsmodule.cnf -> $(OPENSSLDIR)\fipsmodule.cnf"
+    @copy providers\fipsmodule.cnf "$(OPENSSLDIR)\fipsmodule.cnf"
 
 uninstall_fips:
 	@$(ECHO) "*** Uninstalling FIPS module configuration"
@@ -778,8 +775,8 @@ EOF
           # Also redo $gen0, to ensure that we have the proper extension.
           $gen0 = platform->bin($gen0);
           return <<"EOF";
-$args{src}: $gen0 $deps
-	$gen0$gen_args > \$@
+$args{src}: $gen0 $deps "\$(BLDDIR)/util/wrap.pl"
+	"\$(PERL)" "\$(BLDDIR)/util/wrap.pl" $gen0$gen_args > \$@
 EOF
       } else {
           #
