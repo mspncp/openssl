@@ -229,8 +229,7 @@ int opt_format_error(const char *s, unsigned long flags)
 {
     OPT_PAIR *ap;
 
-    opt_printf_stderr("%s: Bad format \"%s\"; must be one of: ",
-               prog, s);
+    opt_printf_stderr("%s: Bad format \"%s\"; must be one of: ", prog, s);
     for (ap = formats; ap->name; ap++)
         if (flags & ap->retval)
             opt_printf_stderr(" %s", ap->name);
